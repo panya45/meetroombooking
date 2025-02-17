@@ -1,20 +1,27 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Room;
+use App\Models\Admin;
+
 
 class AdminRoomController extends Controller
 {
-    // ฟังก์ชันสร้างห้องประชุม
-    public function create(Request $request)
+    public function index()
+    {
+        $rooms = Room::all();
+        return response()->json($rooms);
+    }
+
+    public function store(Request $request)
     {
         // ตรวจสอบข้อมูลที่ส่งมา
         $request->validate([
             'room_name' => 'required|string|max:255',
-            'room_capacity' => 'required|integer|min:1',
-            'room_equipment' => 'nullable|string',
+            'room_detail' => 'required|string',
             'room_status' => 'required|string|in:available,booked,under maintenance',
         ]);
 
@@ -27,22 +34,13 @@ class AdminRoomController extends Controller
         ], 201);
     }
 
-    // ดึงรายการห้องประชุมทั้งหมด
-    public function index()
-    {
-        $rooms = Room::all();
-        return response()->json($rooms);
-    }
-
-    // ดึงข้อมูลห้องประชุมตาม ID
-    public function show($id)
+    public function show(string $id)
     {
         $room = Room::findOrFail($id);
         return response()->json($room);
     }
 
-    // อัปเดตข้อมูลห้องประชุม
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $room = Room::findOrFail($id);
 
@@ -62,8 +60,7 @@ class AdminRoomController extends Controller
         ]);
     }
 
-    // ลบห้องประชุม
-    public function destroy($id)
+    public function destroy(string $id)
     {
         $room = Room::findOrFail($id);
         $room->delete();
