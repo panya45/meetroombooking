@@ -1,51 +1,60 @@
-<?php
+<?
+namespace App\Http\Controllers;
 
-namespace App\Http\Controllers\Auth;
-
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
-    public function create(): View
+    public function register(Request $request)
     {
-        return view('auth.register');
-    }
-
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $validated = $request->validate([
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:8|confirmed',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
         ]);
 
-        event(new Registered($user));
+        return response()->json([
+            'message' => 'User created successfully!',
+            'user' => $user
+        ], 201);
+    }
 
-        Auth::login($user);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'login' => 'required',
+            'password' => 'required'
+        ]);
 
-        return redirect(RouteServiceProvider::HOME);
+        $credentials = [
+            filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username' => $request->login,
+            'password' => $request->password
+        ];
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            if ($user) {
+                $token = $user->createToken('MyApp')->plainTextToken;
+
+                return response()->json([
+                    'message' => 'Login successful!',
+                    'token' => $token
+                ], 200);
+            }
+
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
 }
