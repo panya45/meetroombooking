@@ -20,8 +20,8 @@
                 @csrf
 
                 <div class="mb-4">
-                    <label for="name" class="block text-gray-700">Username</label>
-                    <input type="text" id="name" name="name" placeholder="examplename555" required
+                    <label for="username" class="block text-gray-700">Username</label>
+                    <input type="text" id="username" name="username" placeholder="examplename555" required
                         class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
                 </div>
 
@@ -54,7 +54,7 @@
                 <a href="{{ url('auth/google') }}"
                     class="w-full py-2 px-4 text-black font-semibold rounded-lg flex items-center justify-center gap-4
                            border-2 border-solid transition delay-100 duration-250 ease-in-out hover:bg-gray-300 shadow-lg">
-                    <img src="https://freelogopng.com/images/all_img/1657952217google-logo-png.png" alt="Google Logo" class="w-5 h-5">
+                    <img src="google-logo.png" alt="Google Logo" class="w-5 h-5">
                     Login with Google
                 </a>
             </div>

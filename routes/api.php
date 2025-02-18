@@ -2,7 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminRoomController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -13,8 +14,9 @@ use App\Http\Controllers\AdminRoomController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::resource('room', AdminRoomController::class);
+Route::post('/register', [RegisteredUserController::class, 'register']);
+Route::post('/login', [RegisteredUserController::class, 'login']);
+Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
