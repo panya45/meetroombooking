@@ -1,5 +1,7 @@
-<?
+<?php
+
 namespace App\Http\Controllers\Auth;
+
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -17,33 +19,33 @@ class GoogleController extends Controller
     public function handleCallback()
     {
         try {
-            // ดึงข้อมูลผู้ใช้จาก Google
+            // Get the user from Google
             $googleUser = Socialite::driver('google')->user();
 
-            // ค้นหาผู้ใช้ในฐานข้อมูลตามอีเมล
+            // Find the user in the database by email
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if (!$user) {
-                // หากไม่มีผู้ใช้ในระบบ จะสร้างผู้ใช้ใหม่
+                // Create a new user if they don't exist
                 $user = User::create([
                     'username' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
-                    'password' => bcrypt(Str::random(16)), // สร้างรหัสผ่านสุ่มกรณีไม่มี password
+                    'password' => bcrypt(Str::random(16)), // Create a random password if no password exists
                 ]);
             }
 
-            // ตรวจสอบว่า Google ID ของผู้ใช้ตรงกับ Google User ID หรือไม่
+            // Check if the Google ID matches the one in the database
             if ($user->google_id !== $googleUser->getId()) {
                 $user->update(['google_id' => $googleUser->getId()]);
             }
 
-            // เข้าสู่ระบบผู้ใช้
+            // Log the user in
             Auth::login($user);
 
-            return redirect()->route('home')->with('success', 'เข้าสู่ระบบด้วย Google สำเร็จ!');
+            return redirect()->route('home')->with('success', 'Logged in successfully with Google!');
         } catch (Exception $e) {
-            return redirect('/')->with('error', 'เกิดข้อผิดพลาดในการล็อกอินผ่าน Google: ' . $e->getMessage());
+            return redirect('/')->with('error', 'Error logging in with Google: ' . $e->getMessage());
         }
     }
 }

@@ -14,7 +14,7 @@
     <div class="flex justify-center items-center min-h-screen px-4">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md sm:w-96 md:w-[32rem]">
             <div class="flex justify-center">
-                <img src="images/logo-meetroom-booking.png" class="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 mx-auto">
+                <img src="images/logo-meetroom-booking-Photoroom.png" class="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 mx-auto">
             </div>
             <h2 class="text-2xl font-semibold text-center text-gray-700 mb-6">Login</h2>
             <form action="{{ route('login') }}" method="POST">
