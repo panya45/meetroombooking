@@ -13,6 +13,11 @@ class RegisteredUserController extends Controller
         return view('auth.register');
 
     }
+    protected function redirectTo()
+    {
+        return '/rooms';
+    }
+
     public function Register(Request $request)
     {
         $fields = $request->validate([
