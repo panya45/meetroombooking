@@ -1,6 +1,6 @@
 <?
 namespace App\Http\Controllers\Auth;
-
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -11,35 +11,39 @@ class GoogleController extends Controller
 {
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
     public function handleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // ดึงข้อมูลผู้ใช้จาก Google
+            $googleUser = Socialite::driver('google')->user();
 
+            // ค้นหาผู้ใช้ในฐานข้อมูลตามอีเมล
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if (!$user) {
+                // หากไม่มีผู้ใช้ในระบบ จะสร้างผู้ใช้ใหม่
                 $user = User::create([
-                    'name' => $googleUser->getName(),
+                    'username' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
-                    'password' => null, // ไม่ต้องใช้รหัสผ่านสำหรับ Social Login
+                    'password' => bcrypt(Str::random(16)), // สร้างรหัสผ่านสุ่มกรณีไม่มี password
                 ]);
             }
 
-            // อัปเดต Google ID เผื่อมีการล็อกอินครั้งแรกผ่านอีเมลก่อน
-            if (!$user->google_id) {
+            // ตรวจสอบว่า Google ID ของผู้ใช้ตรงกับ Google User ID หรือไม่
+            if ($user->google_id !== $googleUser->getId()) {
                 $user->update(['google_id' => $googleUser->getId()]);
             }
 
+            // เข้าสู่ระบบผู้ใช้
             Auth::login($user);
 
             return redirect()->route('home')->with('success', 'เข้าสู่ระบบด้วย Google สำเร็จ!');
         } catch (Exception $e) {
-            return redirect('/')->with('error', 'เกิดข้อผิดพลาดในการล็อกอินผ่าน Google');
+            return redirect('/')->with('error', 'เกิดข้อผิดพลาดในการล็อกอินผ่าน Google: ' . $e->getMessage());
         }
     }
 }
