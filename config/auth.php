@@ -47,8 +47,13 @@ return [
         'admin-api' => [
             'driver' => 'sanctum',
             'provider' => 'admins'
-        ]
+        ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
