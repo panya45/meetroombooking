@@ -22,8 +22,8 @@
             <button @click="open = !open" class="flex items-center focus:outline-none">
                 <img class="w-8 h-8 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Admin Profile">
                 <div class="ml-2 text-left">
-                    <span class="block text-sm font-medium text-gray-700">Moni Roy</span>
-                    <span class="block text-xs text-gray-500">Admin</span>
+                    <span class="block text-sm font-medium text-gray-700">Admin</span>
+                    {{-- <span class="block text-xs text-gray-500">Admin</span> --}}
                 </div>
                 <svg class="w-4 h-4 ml-2 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>

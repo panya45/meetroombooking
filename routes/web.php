@@ -36,6 +36,8 @@ Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name(
 
 Route::middleware('auth:admin')->group(function () {
     Route::get('/admin/dashboard', function() {return view('admin.dashboard');})->name('admin.dashboard');
+    Route::get('/admin/room_create', function () {return view('admin.room_create');})->name('admin.room.create');
+
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/bookings', [AdminDashboardController::class, 'bookings'])->name('admin.bookings');
