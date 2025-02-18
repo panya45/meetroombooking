@@ -10,4 +10,8 @@ class AdminDashboardController extends Controller
     public function adminLogin() {
         return view('admin.dashboard');
     }
+
+    public function index() {
+        return view('admin.dashboard'); // ตรวจสอบว่ามีไฟล์ dashboard.blade.php อยู่ใน resources/views/admin/
+    }
 }

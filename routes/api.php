@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Route::resource('room', AdminRoomController::class);
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
-Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->middleware('auth:sanctum');
+// Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/logout', [AdminAuthController::class, 'logout']);
@@ -48,6 +48,8 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware('admin.auth')->group(function () {
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/admin/rooms', [AdminRoomController::class, 'index']);
+
     });
 
     Route::post('/login', [AdminAuthController::class, 'login']);
