@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\AdminRoomController;
 
@@ -39,3 +41,17 @@ Route::middleware('auth')->group(function () {
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleCallback']);
 require __DIR__.'/auth.php';
+
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+
+Route::middleware('auth:admin')->group(function () {
+    Route::get('/admin/dashboard', function() {return view('admin.dashboard');})->name('admin.dashboard');
+    Route::get('/admin/room_create', function () {return view('admin.room_create');})->name('admin.room.create');
+
+
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/bookings', [AdminDashboardController::class, 'bookings'])->name('admin.bookings');
+    Route::get('/admin/rooms', [AdminDashboardController::class, 'rooms'])->name('admin.rooms');
+    Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
+    Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
+});

@@ -13,12 +13,8 @@ class Room extends Model
 
     protected $fillable = [
         'room_name',      // ชื่อห้องประชุม
-        'room_capacity',  // ความจุของห้อง
-        'room_equipment', // อุปกรณ์ที่มีในห้อง
-        'room_status'     // สถานะของห้อง (available, booked, under maintenance)
-    ];
-
-    protected $casts = [
-        'room_capacity' => 'integer', // แปลงเป็น int อัตโนมัติ
+        'room_detail',  // ความจุของห้อง
+        'room_status',     // สถานะของห้อง (available, booked, under maintenance)
+        'room_pic'
     ];
 }
