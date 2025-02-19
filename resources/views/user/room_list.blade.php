@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    {{-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> --}}
+    <title>MeetroomBooking</title>
+    {{--
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> --}}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
@@ -25,21 +26,20 @@
             <table class="w-full border-collapse border border-gray-300">
                 <thead>
                     <tr class="bg-gray-200 text-center">
+                        <th class="border border-gray-300 px-4 py-2">ลำดับห้อง</th>
                         <th class="border border-gray-300 px-4 py-2">ภาพ</th>
                         <th class="border border-gray-300 px-4 py-2">ชื่อห้อง</th>
                         <th class="border border-gray-300 px-4 py-2">รายละเอียด</th>
                         <th class="border border-gray-300 px-4 py-2">สถานะ</th>
-                        <th class="border border-gray-300 px-4 py-2">จอง</th>
+                        <th class="border border-gray-300 px-4 py-2">การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($room_data as $room)
                         <tr class="text-center">
-                            <td class="border border-gray-300 px-4 py-2">
-                                <img src=""
-                                    class="w-32 h-20 object-cover mx-auto">
-                            </td>
-                            <td class="border border-gray-300 px-4 py-2">{{ $room->room_pic }}</td>
+                          
+                            <td class="border border-gray-300 px-4 py-2">{{ $room->id}}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ $room->room_pic}}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $room->room_name }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $room->room_detail }}</td>
                             <td class="border border-gray-300 px-4 py-2">
@@ -52,9 +52,8 @@
                                 @endif
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <button class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded">
-                                    จองห้องประชุม
-                                </button>
+                                <a href="{{ url('room_detail') }}" class="bg-orange-500 hover:bg-orange-600 text-black px-3 py-1 rounded">
+                                    ดูรายละเอียด
                             </td>
                         </tr>
                     @endforeach
@@ -62,7 +61,6 @@
             </table>
         </div>
     @endsection
-
 </body>
 
 </html>
