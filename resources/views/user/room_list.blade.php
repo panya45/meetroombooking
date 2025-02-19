@@ -37,9 +37,11 @@
                 <tbody>
                     @foreach ($room_data as $room)
                         <tr class="text-center">
-                          
+
                             <td class="border border-gray-300 px-4 py-2">{{ $room->id}}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ $room->room_pic}}</td>
+                            <td class="border border-gray-300 px-4 py-2"><img src="{{ Storage::url($room->room_pic) }}"
+                                    alt="Room Image" class="w-16 h-16 object-cover rounded-md">
+                            </td>
                             <td class="border border-gray-300 px-4 py-2">{{ $room->room_name }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $room->room_detail }}</td>
                             <td class="border border-gray-300 px-4 py-2">
@@ -52,7 +54,8 @@
                                 @endif
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <a href="{{ url('room_detail') }}" class="bg-orange-500 hover:bg-orange-600 text-black px-3 py-1 rounded">
+                                <a href="{{ url('room_detail') }}"
+                                    class="bg-orange-500 hover:bg-orange-600 text-black px-3 py-1 rounded">
                                     ดูรายละเอียด
                             </td>
                         </tr>
