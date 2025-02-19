@@ -1,27 +1,48 @@
 <?php
 
-
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Room;
-use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class AdminRoomController extends Controller
 {
-    // ฟังก์ชันสร้างห้องประชุม
-    public function create(Request $request)
+    public function index()
+    {
+        $rooms = Room::all();
+        return response()->json($rooms);
+    }
+
+    public function store(Request $request)
     {
         // ตรวจสอบข้อมูลที่ส่งมา
         $request->validate([
             'room_name' => 'required|string|max:255',
-            'room_capacity' => 'required|integer|min:1',
-            'room_equipment' => 'nullable|string',
+            'room_detail' => 'required|string',
             'room_status' => 'required|string|in:available,booked,under maintenance',
+            'room_pic' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // สร้างห้องประชุม
-        $room = Room::create($request->all());
+        // Handle image upload
+        if ($request->hasFile('room_pic')) {
+            $path = $request->file('room_pic')->store('room_pics', 'public');
+        } else {
+            $path = null;
+        }
+
+        // Create Room
+        $room = Room::create([
+            'room_name' => $request->room_name,
+            'room_detail' => $request->room_detail,
+            'room_capacity' => $request->room_capacity,
+            'room_equipment' => $request->room_equipment,
+            'room_status' => $request->room_status,
+            'room_pic' => $path,
+        ]);
 
         return response()->json([
             'message' => 'Room created successfully',
@@ -29,47 +50,65 @@ class AdminRoomController extends Controller
         ], 201);
     }
 
-    // ดึงรายการห้องประชุมทั้งหมด
-    public function index()
-    {
-        $rooms = Room::all();
-        return response()->json($rooms);
-    }
-
-    // ดึงข้อมูลห้องประชุมตาม ID
-    public function show($id)
+    public function show(string $id)
     {
         $room = Room::findOrFail($id);
         return response()->json($room);
     }
 
-    // อัปเดตข้อมูลห้องประชุม
     public function update(Request $request, $id)
     {
         $room = Room::findOrFail($id);
 
-        // ตรวจสอบข้อมูลก่อนอัปเดต
-        $request->validate([
+        // ✅ Validate Input (No `room_status`)
+        $validatedData = $request->validate([
             'room_name' => 'sometimes|string|max:255',
-            'room_capacity' => 'sometimes|integer|min:1',
-            'room_equipment' => 'nullable|string',
-            'room_status' => 'sometimes|string|in:available,booked,under maintenance',
+            'room_detail' => 'sometimes|string',
+            'room_pic' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $room->update($request->all());
+        // ✅ Prepare Data for Update
+        $dataToUpdate = [];
+
+        if ($request->has('room_name')) {
+            $dataToUpdate['room_name'] = $request->room_name;
+        }
+        if ($request->has('room_detail')) {
+            $dataToUpdate['room_detail'] = $request->room_detail;
+        }
+        if ($request->hasFile('room_pic')) {
+            // ✅ Delete old image if exists
+            if ($room->room_pic) {
+                Storage::disk('public')->delete($room->room_pic);
+            }
+            $dataToUpdate['room_pic'] = $request->file('room_pic')->store('room_pics', 'public');
+        }
+
+        // ✅ Perform Update
+        if (!empty($dataToUpdate)) {
+            $room->update($dataToUpdate);
+        }
 
         return response()->json([
             'message' => 'Room updated successfully',
             'room' => $room
-        ]);
+        ], 200);
     }
 
-    // ลบห้องประชุม
     public function destroy($id)
     {
-        $room = Room::findOrFail($id);
+        $room = Room::find($id);
+
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+
+        if ($room->room_pic) {
+            Storage::disk('public')->delete($room->room_pic);
+        }
+
         $room->delete();
 
-        return response()->json(['message' => 'Room deleted successfully']);
+        return response()->json(['message' => 'Room deleted successfully'], 200);
     }
 }
