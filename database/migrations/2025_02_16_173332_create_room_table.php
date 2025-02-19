@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('room_name');
             $table->string('room_detail');
             $table->string('room_status')->default('available');  // available, booked, under maintenance
+            $table->string('room_pic')->nullable();
             $table->timestamps();
         });
     }
