@@ -17,11 +17,14 @@ return new class extends Migration
             $table->string('booktitle');
             $table->string('username');
             $table->string('email');
-            $table->string('booktel'); 
+            $table->string('booktel');
             $table->string('bookedate');
             $table->string('booktime');
             $table->string('bookdetail');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('room_id')->references('id')->on('room')->onDelete('cascade');
         });
     }
 

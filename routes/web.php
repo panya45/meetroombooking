@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\AdminRoomController;
 use App\Http\Controllers\User\RoomUserController;
 use App\Http\Controllers\RoomDetailController;
+use App\Http\Controllers\user\BookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +30,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Route::prefix('admin/room')->middleware('auth')->group(function () {
-//     Route::post('/', [AdminRoomController::class, 'create']); 
-//     Route::get('/', [AdminRoomController::class, 'index']);   
-//     Route::get('{id}', [AdminRoomController::class, 'show']); 
-//     Route::put('{id}', [AdminRoomController::class, 'update']); 
-//     Route::delete('{id}', [AdminRoomController::class, 'destroy']); 
+//     Route::post('/', [AdminRoomController::class, 'create']);
+//     Route::get('/', [AdminRoomController::class, 'index']);
+//     Route::get('{id}', [AdminRoomController::class, 'show']);
+//     Route::put('{id}', [AdminRoomController::class, 'update']);
+//     Route::delete('{id}', [AdminRoomController::class, 'destroy']);
 // });
 
 Route::middleware('auth')->group(function () {
@@ -66,3 +67,4 @@ Route::middleware('auth:admin')->group(function () {
 });
 
 Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('room_detail');
+
