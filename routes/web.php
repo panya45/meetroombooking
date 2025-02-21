@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\AdminRoomController;
 use App\Http\Controllers\User\RoomUserController;
+use App\Http\Controllers\RoomDetailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,3 +64,5 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
 });
+
+Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('room_detail');

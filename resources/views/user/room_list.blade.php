@@ -54,9 +54,10 @@
                                 @endif
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <a href="{{ url('room_detail') }}"
+                                <a href="{{ route('room_detail', $room->id) }}"
                                     class="bg-orange-500 hover:bg-orange-600 text-black px-3 py-1 rounded">
-                                    ดูรายละเอียด
+                                    ดูรายละเอียดและการจอง
+                                </a>
                             </td>
                         </tr>
                     @endforeach

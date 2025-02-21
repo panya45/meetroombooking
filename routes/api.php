@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\AdminRoomController;
 use App\Http\Controllers\admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\RoomDetailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,7 +46,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('/rooms/{id}', [AdminRoomController::class, 'update']); // Changed to POST
     Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy']);
 });
-
 Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
 Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
