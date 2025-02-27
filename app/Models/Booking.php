@@ -4,19 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Room; // นำเข้า Room Model
 
 class Booking extends Model
 {
     use HasFactory;
 
-    // Specify the table name if it's not the plural form of the model name.
-    protected $table = 'booking';
+    protected $table = 'booking'; // กำหนดชื่อตาราง
 
-    // Set the primary key if it is not "id"
-    protected $primaryKey = 'book_id';
-
-    // Allow mass assignment on the following fields
     protected $fillable = [
-        'room_id', 'booktitle', 'username', 'email', 'booktel', 'bookedate', 'booktime', 'bookdetail'
+        'user_id',
+        'room_id',
+        'booktitle',
+        'bookdetail',
+        'username',
+        'email',
+        'booktel',
+        'book_date',
+        'start_time',
+        'end_time'
     ];
+
+    // ความสัมพันธ์กับ Room (การจองแต่ละรายการจะมีห้องหนึ่งห้อง)
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id', 'id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

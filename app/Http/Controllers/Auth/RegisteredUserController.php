@@ -33,7 +33,9 @@ class RegisteredUserController extends Controller
         ]);
 
         $token = $user->createToken($user->username);
-        return ['user' => $user, 'token' => $token->plainTextToken];
+
+        session(['user_token' => $token->plainTextToken]);
+        return redirect('/rooms');
     }
 
     public function Login(Request $request)

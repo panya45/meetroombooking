@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\user\BookingController;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -50,4 +51,8 @@ Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
 Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
 
-Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+// Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+// Route::middleware(['auth:sanctum'])->group(function() {
+//     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('api.booking.show');
+//     Route::post('/booking', [BookingController::class, 'store'])->name('api.booking.store');
+// });

@@ -6,15 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>MeetroomBooking</title>
-    {{--
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+
 </head>
 
-<body>
+<body class="bg-gray-100" x-data="{ sidebarOpen: false }">
     @extends('layouts.app')
-
     @section('content')
+    @include('layouts.navigation')
         {{-- ส่วนแสดงรายการห้องประชุม --}}
         <div class="container mx-auto my-6 bg-white p-4 shadow">
             <div class="flex items-center mb-4">
@@ -38,7 +40,7 @@
                     @foreach ($room_data as $room)
                         <tr class="text-center">
 
-                            <td class="border border-gray-300 px-4 py-2">{{ $room->id}}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ $room->id }}</td>
                             <td class="border border-gray-300 px-4 py-2"><img src="{{ Storage::url($room->room_pic) }}"
                                     alt="Room Image" class="w-16 h-16 object-cover rounded-md">
                             </td>
@@ -55,8 +57,8 @@
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
                                 <a href="{{ route('room_detail', $room->id) }}"
-                                    class="bg-orange-500 hover:bg-orange-600 text-black px-3 py-1 rounded">
-                                    ดูรายละเอียดและการจอง
+                                    class="bg-cyan-500 hover:bg-cyan-600 text-black px-3 py-1 rounded">
+                                    ดูรายละเอียดและจองห้อง
                                 </a>
                             </td>
                         </tr>

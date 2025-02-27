@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 class RoomDetailController extends Controller
 {
-    public function show($id)
+    public function show($room_id)
     {
-        $room = Room::findOrFail($id);
+        $room = Room::where('id', $room_id)->firstOrFail();
         return view('user.room_detail', compact('room'));
     }
 }

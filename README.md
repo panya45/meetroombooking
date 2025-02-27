@@ -73,3 +73,6 @@ composer require laravel/socialite
 
 composer require laravel/breeze --dev
 php artisan breeze:install
+
+composer require fullcalendar/fullcalendar
+npm install @fullcalendar/core @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction @fullcalendar/bootstrap

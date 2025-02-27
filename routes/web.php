@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\GoogleController;
-use App\Http\Controllers\Admin\AdminRoomController;
 use App\Http\Controllers\User\RoomUserController;
 use App\Http\Controllers\RoomDetailController;
 use App\Http\Controllers\user\BookingController;
@@ -66,5 +65,19 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
 });
 
+Route::get('/rooms/{room_id}', [RoomDetailController::class, 'show']);
 Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('room_detail');
 
+Route::middleware(['auth'])->group(function() {
+    // แสดงฟอร์มการจอง
+    Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
+
+    // ส่งข้อมูลการจอง
+    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+});
+
+// แสดงหน้าปฏิทิน
+Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
+
+// API สำหรับดึงข้อมูลการจอง
+Route::get('/booking/events', [BookingController::class, 'getEvents'])->name('booking.events');

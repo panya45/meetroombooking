@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -24,7 +24,7 @@ class AdminRoomController extends Controller
             'room_name' => 'required|string|max:255',
             'room_detail' => 'required|string',
             'room_status' => 'required|string|in:available,booked,under maintenance',
-            'room_pic' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'room_pic' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
         // Handle image upload
@@ -38,8 +38,6 @@ class AdminRoomController extends Controller
         $room = Room::create([
             'room_name' => $request->room_name,
             'room_detail' => $request->room_detail,
-            'room_capacity' => $request->room_capacity,
-            'room_equipment' => $request->room_equipment,
             'room_status' => $request->room_status,
             'room_pic' => $path,
         ]);

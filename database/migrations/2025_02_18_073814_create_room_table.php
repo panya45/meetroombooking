@@ -12,13 +12,14 @@ return new class extends Migration
     public function up()
     {
         Schema::create('room', function (Blueprint $table) {
-            $table->id();
+            $table->id();  // ใช้เพื่อสร้าง primary key และ auto increment
             $table->string('room_name');
             $table->string('room_detail');
-            $table->string('room_status')->default('available');  // available, booked, under maintenance
+            $table->string('room_status')->default('available');
             $table->string('room_pic')->nullable();
             $table->timestamps();
         });
+
     }
 
 
