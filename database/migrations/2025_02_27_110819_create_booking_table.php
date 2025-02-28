@@ -23,6 +23,7 @@ return new class extends Migration
             $table->date('book_date');
             $table->time('start_time');
             $table->time('end_time');
+            $table->string('bookstatus')->default('pending');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

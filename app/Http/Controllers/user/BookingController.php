@@ -20,15 +20,27 @@ class BookingController extends Controller
         $this->middleware('auth');
     }
 
-    public function show($roomId)
+    public function show($roomId, $book_id)
     {
-        $user = auth()->user();  // ดึงข้อมูลผู้ใช้งานที่ล็อกอิน
-        $room = Room::find($roomId);  // ดึงข้อมูลห้องที่เลือกจากตาราง room
-        $users = User::all();  // ดึงข้อมูลทั้งหมดจากตาราง users
+        $user = auth()->user();  // Get the logged-in user
+        $room = Room::find($roomId);  // Get the selected room
 
-        // ส่งข้อมูลไปยัง view
-        return view('user.room_detail', compact('user', 'room', 'users'));
+        if (!$room) {
+            return redirect()->back()->withErrors(['message' => 'ห้องไม่พบ']);
+        }
+
+        $users = User::all();  // Get all users
+        $booking = Booking::find($book_id);
+
+        if (!$booking) {
+            return redirect()->back()->withErrors(['message' => 'ไม่พบข้อมูลการจอง']);
+        }
+
+        // Pass data to the view
+        return view('user.room_detail', compact('user', 'room', 'users', 'booking'));
     }
+
+
 
     public function store(Request $request)
     {
@@ -50,11 +62,11 @@ class BookingController extends Controller
 
         // ตรวจสอบเวลาให้ถูกต้อง
         $openingTime = Carbon::createFromFormat('H:i', '07:00');
-        $closingTime = Carbon::createFromFormat('H:i', '17:00');
+        $closingTime = Carbon::createFromFormat('H:i', '18:00');
 
         foreach ($validated['start_time'] as $index => $start) {
             $startTimestamp = Carbon::createFromFormat('H:i', $start);
-            $endTimestamp   = Carbon::createFromFormat('H:i', $validated['end_time'][$index]);
+            $endTimestamp = Carbon::createFromFormat('H:i', $validated['end_time'][$index]);
 
             // เช็คเวลาสิ้นสุดต้องมากกว่าเวลาที่เริ่มต้น
             if ($endTimestamp <= $startTimestamp) {
@@ -63,19 +75,22 @@ class BookingController extends Controller
                     'message' => "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")"
                 ], 422);
             }
+
             // เช็คว่าเวลาที่จองต้องอยู่ในช่วงเวลาที่กำหนด
             if ($startTimestamp < $openingTime || $endTimestamp > $closingTime) {
                 return response()->json([
                     'success' => false,
-                    'message' => "เวลาจองต้องอยู่ในช่วง 07:00 - 17:00 (จุดที่ " . ($index + 1) . ")"
+                    'message' => "เวลาจองต้องอยู่ในช่วง 07:00 - 18:00 (จุดที่ " . ($index + 1) . ")"
                 ], 422);
             }
         }
-        // การตรวจสอบการทับซ้อนของเวลา
+
+        // ตรวจสอบการทับซ้อนของเวลา
         foreach ($validated['book_date'] as $index => $book_date) {
             $start_time = $validated['start_time'][$index];
             $end_time = $validated['end_time'][$index];
 
+            // ตรวจสอบการทับซ้อนของเวลา
             $existingBooking = Booking::where('room_id', $validated['room_id'])
                 ->whereDate('book_date', $book_date)
                 ->where(function ($query) use ($start_time, $end_time) {
@@ -88,52 +103,56 @@ class BookingController extends Controller
                 })
                 ->exists();
 
+            // ถ้าพบการจองที่ทับซ้อน
             if ($existingBooking) {
                 return response()->json([
                     'success' => false,
-                    'message' => "ห้องนี้ถูกจองแล้วเมื่อวันที่" . $book_date
+                    'message' => "ห้องนี้ถูกจองแล้วในวันที่ " . $book_date . " กรุณาลองเลือกวันที่อื่น"
                 ], 422);
             }
         }
+
+        // ข้อมูลการจอง
         $booking = [];
         foreach ($validated['book_date'] as $index => $book_date) {
             $booking[] = [
-                'user_id'   => auth()->id(),  // ใช้ auth()->id() สำหรับ user_id
+                'user_id'   => auth()->id(),
                 'room_id'   => $validated['room_id'],
                 'booktitle' => $validated['booktitle'],
                 'bookdetail' => $validated['bookdetail'],
                 'booktel'   => $validated['booktel'],
-                'username'  => auth()->user()->username,  // ตรวจสอบค่า username ไม่ให้เป็น null
-                'email'     => auth()->user()->email, // ใช้ auth()->user()->email สำหรับ email
+                'username'  => auth()->user()->username,
+                'email'     => auth()->user()->email,
                 'book_date' => $book_date,
                 'start_time' => $validated['start_time'][$index],
                 'end_time'  => $validated['end_time'][$index],
+                'bookstatus' => 'pending',
             ];
         }
 
-        // ใช้ DB transaction
+        // บันทึกข้อมูลการจอง
         DB::beginTransaction();
         try {
-            // เพิ่มข้อมูลทีละแถวด้วย create() เพื่อให้สามารถตรวจสอบข้อผิดพลาดได้ง่ายขึ้น
             foreach ($booking as $data) {
                 Booking::create($data);
             }
-
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'การจองสำเร็จ!']);
+            return redirect()->route('room.show', ['roomId' => $validated['room_id']])->with('success', 'การจองสำเร็จ!');
         } catch (\Exception $e) {
             DB::rollback();
-            Log::error("Booking Error: " . $e->getMessage());  // บันทึกข้อผิดพลาดใน log
+            Log::error("Booking Error: " . $e->getMessage());
             return redirect()->back()->withErrors([
                 'success' => false,
                 'message' => "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " . $e->getMessage()
             ], 500);
         }
     }
+
+
     public function calendar()
     {
-        $rooms = Room::all();
-        return view('user.calendar', compact('rooms'));
+        $room_data = Room::all();
+        return view('user.calendar', compact('room_data'));
     }
 
     /**
@@ -142,37 +161,38 @@ class BookingController extends Controller
     public function getEvents(Request $request)
     {
         $roomId = $request->input('room_id');
-
-        // กำหนดเงื่อนไขการค้นหา
         $query = Booking::with('room', 'user');
 
-        // ถ้ามีการระบุห้องให้กรองตามห้องที่เลือก
         if ($roomId) {
             $query->where('room_id', $roomId);
+        } else {
+            Log::info('No room filter applied, fetching all bookings.');
         }
 
-        // ดึงข้อมูลการจองทั้งหมด
+
         $bookings = $query->get();
+
+        if ($bookings->isEmpty()) {
+            Log::warning("No bookings found for room_id: " . ($roomId ?? 'all'));
+        }
 
         $events = [];
 
-        // แปลงข้อมูลการจองให้อยู่ในรูปแบบที่ FullCalendar ใช้ได้
         foreach ($bookings as $booking) {
-            // กำหนดสีตามสถานะหรือตามห้อง (ตัวอย่างกำหนดแบบสุ่ม)
-            $colors = ['blue', 'green', 'yellow', 'red', 'neutral'];
-            $colorIndex = $booking->room_id % count($colors);
-
             $events[] = [
                 'id' => $booking->id,
                 'title' => $booking->booktitle,
-                'start' => $booking->book_date . 'T' . $booking->start_time,
-                'end' => $booking->book_date . 'T' . $booking->end_time,
-                'className' => $colors[$colorIndex] . '-label',
+                'start' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->start_time}")->toIso8601String(),
+                'end' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->end_time}")->toIso8601String(),
+                'className' => 'event-color-' . ($booking->room_id % 5),
                 'extendedProps' => [
-                    'room' => $booking->room->name ?? 'ไม่ระบุห้อง',
-                    'user' => $booking->username,
-                    'description' => $booking->bookdetail,
-                    'contact' => $booking->booktel
+                    'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
+                    'username' => $booking->username ?? 'ไม่ระบุชื่อผู้จอง',
+                    'email' => $booking->email ?? 'ไม่ระบุอีเมล',
+                    'bookdetail' => $booking->bookdetail ?? '',
+                    'booktel' => $booking->booktel ?? '',
+                    'bookstatus' => $booking->bookstatus ?? '',
+
                 ]
             ];
         }
