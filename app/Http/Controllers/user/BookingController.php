@@ -5,11 +5,13 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
-use App\Models\Room;  // ตรวจสอบให้แน่ใจว่า Room Model ใช้ชื่อ table 'room'
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+
+use function PHPUnit\Framework\returnSelf;
 
 class BookingController extends Controller
 {
@@ -56,18 +58,19 @@ class BookingController extends Controller
 
             // เช็คเวลาสิ้นสุดต้องมากกว่าเวลาที่เริ่มต้น
             if ($endTimestamp <= $startTimestamp) {
-                return redirect()->back()->withErrors([
-                    'error' => "ในช่องการจองที่ " . ($index + 1) . " เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น"
-                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")"
+                ], 422);
             }
             // เช็คว่าเวลาที่จองต้องอยู่ในช่วงเวลาที่กำหนด
             if ($startTimestamp < $openingTime || $endTimestamp > $closingTime) {
-                return redirect()->back()->withErrors([
-                    'error' => "ในช่องการจองที่ " . ($index + 1) . " เวลาจองต้องอยู่ในช่วง 07:00 - 17:00"
-                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => "เวลาจองต้องอยู่ในช่วง 07:00 - 17:00 (จุดที่ " . ($index + 1) . ")"
+                ], 422);
             }
         }
-
         // การตรวจสอบการทับซ้อนของเวลา
         foreach ($validated['book_date'] as $index => $book_date) {
             $start_time = $validated['start_time'][$index];
@@ -86,16 +89,12 @@ class BookingController extends Controller
                 ->exists();
 
             if ($existingBooking) {
-                return redirect()->back()->withErrors([
-                    'error' => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้วในวันที่ " . $book_date
-                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => "ห้องนี้ถูกจองแล้วเมื่อวันที่" . $book_date
+                ], 422);
             }
         }
-
-
-
-        // เตรียมข้อมูลการจอง
-        // ตรวจสอบค่า username ก่อนบันทึก
         $booking = [];
         foreach ($validated['book_date'] as $index => $book_date) {
             $booking[] = [
@@ -121,13 +120,14 @@ class BookingController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('booking.success')->with('message', 'การจองสำเร็จ');
+            return response()->json(['success' => true, 'message' => 'การจองสำเร็จ!']);
         } catch (\Exception $e) {
             DB::rollback();
             Log::error("Booking Error: " . $e->getMessage());  // บันทึกข้อผิดพลาดใน log
             return redirect()->back()->withErrors([
-                'error' => "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " . $e->getMessage()
-            ]);
+                'success' => false,
+                'message' => "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " . $e->getMessage()
+            ], 500);
         }
     }
     public function calendar()

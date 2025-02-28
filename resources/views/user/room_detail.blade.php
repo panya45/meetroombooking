@@ -74,8 +74,7 @@
                                         </ul>
                                     </div>
                                 @endif
-
-                                <form action="{{ route('booking.store') }}" method="POST">
+                                <form id="booking-form" action="{{ route('booking.store') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="room_id" value="{{ $room->id }}">
 
@@ -164,6 +163,7 @@
                                         ส่งข้อมูลการจอง
                                     </button>
                                 </form>
+                                <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p>
                             </div>
                         </div>
                     </div>
@@ -180,6 +180,37 @@
         </div>
     @endsection
 </body>
+<script>
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+        e.preventDefault(); // ป้องกันการ Submit ปกติ
+
+        let formData = new FormData(this);
+        let successMessage = document.getElementById('success-message');
+        let errorMessages = document.querySelectorAll('.error-message');
+
+        // เคลียร์ข้อความ Error เดิม
+        errorMessages.forEach(el => el.textContent = "");
+
+        fetch("{{ route('booking.store') }}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('input[name=_token]').value
+                }
+            })
+            .then(response => response.text()) // อ่านเป็นข้อความก่อน
+            .then(text => JSON.parse(text)) // แปลงกลับเป็น JSON
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message; // แสดงข้อความสำเร็จ
+                    successMessage.classList.remove('hidden');
+                } else {
+                    alert(data.message); // แสดงข้อผิดพลาด
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    });
+</script>
 <script>
     // JavaScript สำหรับการเพิ่มฟอร์มการจองเพิ่มเติม
     document.getElementById('add-booking-slot').addEventListener('click', function() {
