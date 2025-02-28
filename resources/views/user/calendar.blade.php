@@ -190,7 +190,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <strong>ห้อง:</strong> <span id="eventRoom"></span>
+                        <strong>ห้อง:</strong> <span id="eventRoom"></span>  
                     </div>
                     <div class="mb-3">
                         <strong>ผู้จอง:</strong> <span id="eventUser"></span>
