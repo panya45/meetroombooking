@@ -32,7 +32,8 @@
 
             <div class="flex justify-between">
                 <a href="{{ route('admin.dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</a>
-                <button type="button" onclick="submitRoom()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create Room</button>
+                <button type="button" onclick="submitRoom()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create
+                    Room</button>
             </div>
         </form>
 
@@ -58,18 +59,22 @@
             }
 
             axios.post('/api/admin/rooms', formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            }).then(response => {
-                document.getElementById('responseMessage').innerText = response.data.message;
-                document.getElementById('responseMessage').classList.remove('hidden');
-                setTimeout(() => window.location.href = "/admin/dashboard", 2000);
-            }).catch(error => {
-                console.error(error);
-                alert("Error creating room. Please try again.");
-            });
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(response => {
+                    console.log("Success:", response.data);
+                    document.getElementById('responseMessage').innerText = response.data.message;
+                    document.getElementById('responseMessage').classList.remove('hidden');
+                    setTimeout(() => window.location.href = "/admin/dashboard", 2000);
+                })
+                .catch(error => {
+                    console.error("Error:", error.response ? error.response.data : error);
+                    alert("Error: " + (error.response ? JSON.stringify(error.response.data) : "Unknown error"));
+                });
+
         }
     </script>
 

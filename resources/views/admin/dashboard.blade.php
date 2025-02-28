@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-100" x-data="{ sidebarOpen: false }">  
 
     <!-- Navbar -->
     @include('components.navigationbar')

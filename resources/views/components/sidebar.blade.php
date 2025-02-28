@@ -19,7 +19,7 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('admin.rooms') }}" class="block py-3 px-6 hover:bg-gray-100 rounded-lg">
+                <a href="{{ route('admin.room.list') }}" class="block py-3 px-6 hover:bg-gray-100 rounded-lg">
                     จัดการห้องประชุม
                 </a>
             </li>

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 </head>
 
 <body class="bg-gray-100">
@@ -45,7 +47,12 @@
                         class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
                 </div>
 
-                <div class="mb-4 flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 p-6">
+                    <a href="{{ url('login') }}"
+                        class="w-full sm:w-1/2 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg
+                           hover:bg-gray-500 text-center">
+                        Login
+                    </a>
                     <button type="submit"
                         class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
                         Register
@@ -62,7 +69,28 @@
             </div>
         </div>
     </div>
+    <script>
+        function submitRegister() {
+            let formData = new FormData();
+            formData.append('username', document.getElementById('username').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('password', document.getElementById('password').value);
+            formData.append('password_confirmation', document.getElementById('password_confirmation').value);
 
+            axios.post('/api/register', formData)
+                .then(response => {
+                    // เมื่อการลงทะเบียนสำเร็จ
+                    if (response.data.redirect_url) {
+                        // redirect ไปยังหน้า /rooms
+                        window.location.href = response.data.redirect_url;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert("Error during registration. Please try again.");
+                });
+        }
+    </script>
 </body>
 
 </html>
