@@ -11,6 +11,7 @@ class Booking extends Model
     use HasFactory;
 
     protected $table = 'booking'; // กำหนดชื่อตาราง
+    protected $primaryKey = 'book_id';
 
     protected $fillable = [
         'user_id',
@@ -22,7 +23,8 @@ class Booking extends Model
         'booktel',
         'book_date',
         'start_time',
-        'end_time'
+        'end_time',
+        'bookstatus'
     ];
 
     // ความสัมพันธ์กับ Room (การจองแต่ละรายการจะมีห้องหนึ่งห้อง)

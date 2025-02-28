@@ -168,8 +168,8 @@ class BookingController extends Controller
         } else {
             Log::info('No room filter applied, fetching all bookings.');
         }
-
-
+        
+        
         $bookings = $query->get();
 
         if ($bookings->isEmpty()) {

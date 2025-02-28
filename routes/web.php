@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\User\RoomUserController;
 use App\Http\Controllers\RoomDetailController;
 use App\Http\Controllers\user\BookingController;
+use App\Http\Controllers\admin\AdminBookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,12 +64,19 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('/admin/room/edit/{id}', function ($id) {
         return view('admin.room_edit', ['roomId' => $id]);
     })->name('admin.room.edit');
+    Route::get('/admin/room_booking', function () {
+        return view('admin.room_booking');
+    })->name('admin.room.booking');
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/bookings', [AdminDashboardController::class, 'bookings'])->name('admin.bookings');
     Route::get('/admin/rooms', [AdminDashboardController::class, 'rooms'])->name('admin.rooms');
     Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
+    Route::get('/admin/room_booking', [AdminBookingController::class, 'index'])->name('admin.room.booking');
+    Route::get('/admin/room_booking/{id}', [AdminBookingController::class, 'show']);
+    Route::patch('/admin/bookings/{bookId}/status', [BookingController::class, 'updateBookingStatus']);
+    Route::get('/admin/bookings/{bookId}', [BookingController::class, 'getBooking']);
 });
 
 Route::get('/rooms/{room_id}', [RoomDetailController::class, 'show']);

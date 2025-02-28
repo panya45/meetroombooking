@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100" x-data="{ sidebarOpen: false }">  
+<body class="bg-gray-100" x-data="{ sidebarOpen: false }">
 
     <!-- Navbar -->
     @include('components.navigationbar')
@@ -31,14 +31,6 @@
         <div class="w-full min-h-screen p-6 transition-all" @click="sidebarOpen = false">
             <h2 class="text-2xl font-semibold mb-4">Welcome to Admin Dashboard</h2>
 
-            <!-- Add Room Button -->
-            <div class="flex justify-end mb-4">
-                <a href="{{ route('admin.room.create') }}"
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-                    + Add Room
-                </a>
-            </div>
-
             <!-- Meeting Room List -->
             <h3 class="text-xl font-semibold mt-4 mb-2">Meeting Room List</h3>
             <table class="table-auto border-collapse border border-gray-400 w-full mt-4">
@@ -46,8 +38,6 @@
                     <tr class="bg-gray-200">
                         <th class="border px-4 py-2">Room Name</th>
                         <th class="border px-4 py-2">Details</th>
-                        <th class="border px-4 py-2">Picture</th>
-                        <th class="border px-4 py-2">Status</th>
                     </tr>
                 </thead>
                 <tbody id="room-list">
@@ -83,14 +73,15 @@
 
                     rooms.forEach(room => {
                         let roomPic = room.room_pic ?
-                            `<img src="{{ asset('storage/') }}/${room.room_pic}" alt="Room Image" class="w-16 h-16 object-cover rounded-md">` :
-                            "No Image";
+                            `<img src="/storage/${room.room_pic}" alt="Room Image" class="w-16 h-16 object-cover rounded-md">` :
+                            `<span class="text-gray-500">No Image</span>`;
 
-                        let row = `<tr>
-                        <td class="border px-4 py-2">${room.room_name}</td>
+                        let row = `<tr class="hover:bg-gray-100">
+                        <td class="border px-4 py-2 flex items-center">
+                            ${roomPic}
+                            <span class="ml-4">${room.room_name}</span>
+                        </td>
                         <td class="border px-4 py-2">${room.room_detail}</td>
-                        <td class="border px-4 py-2">${roomPic}</td>
-                        <td class="border px-4 py-2">${room.room_status}</td>
                     </tr>`;
                         tableBody.innerHTML += row;
                     });
