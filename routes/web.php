@@ -46,14 +46,20 @@ Route::get('auth/google/callback', [GoogleController::class, 'handleCallback']);
 
 Route::get('/rooms', [RoomUserController::class, 'index'])->middleware('auth')->name('rooms.index');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 
 Route::middleware('auth:admin')->group(function () {
-    Route::get('/admin/dashboard', function() {return view('admin.dashboard');})->name('admin.dashboard');
-    Route::get('/admin/room_create', function () {return view('admin.room_create');})->name('admin.room.create');
-    Route::get('/admin/room_list', function () {return view('admin.room_list');})->name('admin.room.list');
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+    Route::get('/admin/room_create', function () {
+        return view('admin.room_create');
+    })->name('admin.room.create');
+    Route::get('/admin/room_list', function () {
+        return view('admin.room_list');
+    })->name('admin.room.list');
     Route::get('/admin/room/edit/{id}', function ($id) {
         return view('admin.room_edit', ['roomId' => $id]);
     })->name('admin.room.edit');
@@ -66,9 +72,12 @@ Route::middleware('auth:admin')->group(function () {
 });
 
 Route::get('/rooms/{room_id}', [RoomDetailController::class, 'show']);
+Route::get('/rooms/{roomId}', [BookingController::class, 'show'])->name('rooms.show');
+
 Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('room_detail');
 
-Route::middleware(['auth'])->group(function() {
+Route::middleware(['auth'])->group(function () {
+    Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
     // แสดงฟอร์มการจอง
     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
 
@@ -80,4 +89,8 @@ Route::middleware(['auth'])->group(function() {
 Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
 
 // API สำหรับดึงข้อมูลการจอง
+Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
+
 Route::get('/booking/events', [BookingController::class, 'getEvents'])->name('booking.events');
+
+Route::get('/book_detail', [BookingController::class, 'detail'])->name('booking.detail');
