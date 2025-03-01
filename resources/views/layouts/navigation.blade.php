@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center">
+<nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center fixed top-0 left-0 w-full z-50">
     <!-- Left Section: Hamburger Button -->
     <!-- ปุ่มเปิด Sidebar -->
     <button @click="sidebarOpen = true" class="p-4 text-gray-600 hover:text-gray-900 focus:outline-none">
@@ -7,7 +7,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     </button>
-    
+
     <!-- Sidebar -->
     @include('layouts.sidebar')
     <!-- Right Section: Notifications & Profile -->
@@ -26,8 +26,10 @@
         <!-- Profile Dropdown -->
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" class="flex items-center focus:outline-none">
-                <img class="w-8 h-8 rounded-full" src="{{ auth()->user()->profile_photo_url }}"
-                    alt="{{ auth()->user()->name }}'s Profile">
+                <img class="w-8 h-8 rounded-full"
+                    src="{{ isset($user) && $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avarta-default.png') }}"
+                    alt="User Avatar">
+
                 <div class="ml-2 text-left">
                     <span class="block text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
                     <span class="block text-xs text-gray-500">{{ auth()->user()->email }}</span>

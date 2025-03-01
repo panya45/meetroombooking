@@ -13,12 +13,12 @@
 
 </head>
 
-<body class="bg-gray-100" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-100 pt-24" x-data="{ sidebarOpen: false }">
     @extends('layouts.app')
     @section('content')
     @include('layouts.navigation')
         {{-- ส่วนแสดงรายการห้องประชุม --}}
-        <div class="container mx-auto my-6 bg-white p-4 shadow">
+        <div class="container mx-auto my-6 bg-white p-4 shadow ">
             <div class="flex items-center mb-4">
                 <h2 class="text-xl font-bold">รายการห้องประชุม</h2>
                 <div class="ml-auto flex items-center space-x-2">
