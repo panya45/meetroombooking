@@ -211,7 +211,7 @@
                                 </div>
                                 <!-- Modal แสดงข้อความ -->
                                 <div id="success-modal"
-                                    class="modal hidden fixed inset-0 flex items-center justify-center z-50">
+                                    class="modal fixed inset-0 flex items-center justify-center z-50">
                                     <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
                                         <h3 class="text-xl font-bold mb-4">จองห้องสำเร็จ!</h3>
                                         <p class="text-green-500">การจองของคุณเสร็จสมบูรณ์แล้ว</p>

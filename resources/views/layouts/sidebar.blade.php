@@ -17,7 +17,7 @@
         </button>
         <nav class="mt-6">
             <a href="{{ route('dashboard') }}"
-                class="block py-3 px-6 rounded-lg text-blue-600 bg-blue-100 font-medium flex items-center">
+                class="block py-3 px-6 rounded-lg text-blue-600 bg-blue-100 font-medium items-center">
                 <span class="mr-2">⚙️</span> Dashboard
             </a>
             <ul class="mt-4">

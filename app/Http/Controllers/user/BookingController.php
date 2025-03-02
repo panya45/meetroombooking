@@ -191,6 +191,9 @@ class BookingController extends Controller
                     'email' => $booking->email ?? 'ไม่ระบุอีเมล',
                     'bookdetail' => $booking->bookdetail ?? '',
                     'booktel' => $booking->booktel ?? '',
+                    'book_date' => $booking->book_date ?? '',
+                    'start_time' => $booking->start_time ?? '',
+                    'end_time' => $booking->end_time ?? '',
                     'bookstatus' => $booking->bookstatus ?? '',
 
                 ]

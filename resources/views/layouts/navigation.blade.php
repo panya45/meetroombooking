@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center fixed top-0 left-0 w-full z-50">
+<nav class="bg-white shadow-md  px-6 py-3 flex justify-between items-center fixed top-0 left-0 w-full z-50">
     <!-- Left Section: Hamburger Button -->
     <!-- ปุ่มเปิด Sidebar -->
     <button @click="sidebarOpen = true" class="p-4 text-gray-600 hover:text-gray-900 focus:outline-none">
