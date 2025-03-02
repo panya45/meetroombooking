@@ -79,8 +79,8 @@
                     locale: 'th', // ใช้ภาษาไทย
                     initialView: 'dayGridMonth', // เริ่มต้นแสดงเป็นเดือน
                     eventClassName: 'my-event-class',
-                    eventTextColor: 'white',
-                    eventBackgroundColor: '#007bff',
+                    eventTextColor: 'white', //
+                    eventBackgroundColor: '#0080ff',
                     events: '/get-events', // ดึงข้อมูลจาก route ที่ Laravel ให้บริการ
                     eventClick: function(info) {
                         alert("รายละเอียดการจอง\n" +
