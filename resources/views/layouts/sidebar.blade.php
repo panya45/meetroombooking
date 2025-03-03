@@ -24,9 +24,9 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('booking.show', ['roomId' => 1]) }}"
+                <a href="{{ route('user.myBooking') }}"
                     class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    จองห้องประชุม
+                    รายการจองของฉัน
                 </a>
             </li>
             <li>
