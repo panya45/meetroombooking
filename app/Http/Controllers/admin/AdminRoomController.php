@@ -109,4 +109,16 @@ class AdminRoomController extends Controller
 
         return response()->json(['message' => 'Room deleted successfully'], 200);
     }
+
+    public function setMaintenance($roomId)
+    {
+        $room = Room::findOrFail($roomId);
+        $room->update(['room_status' => 'maintenance']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Room status updated to Maintenance',
+            'room' => $room
+        ]);
+    }
 }

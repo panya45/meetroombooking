@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
 </head>
 
 <body>
@@ -73,6 +74,22 @@
             </a>
         </div>
     @endsection
+
+    <script>
+        const userId = {{ auth()->id() }}; // ดึง user id ของ user ที่ login อยู่
+
+        Pusher.logToConsole = true;
+
+        const pusher = new Pusher('your-pusher-key', {
+            cluster: 'ap1',
+            encrypted: true
+        });
+
+        const channel = pusher.subscribe('user.' + userId);
+        channel.bind('booking.rejected', function(data) {
+            alert(`Your booking #${data.bookingId} was rejected.\nReason: ${data.reason}`);
+        });
+    </script>
 
 </body>
 

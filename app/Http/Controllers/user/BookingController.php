@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 use function PHPUnit\Framework\returnSelf;
 
@@ -20,27 +21,34 @@ class BookingController extends Controller
         $this->middleware('auth');
     }
 
-    public function show($roomId, $book_id)
+    public function show($booking_id)
     {
-        $user = auth()->user();  // Get the logged-in user
-        $room = Room::find($roomId);  // Get the selected room
+        $booking = Booking::where('book_id', $booking_id)->firstOrFail();
 
-        if (!$room) {
-            return redirect()->back()->withErrors(['message' => 'ห้องไม่พบ']);
-        }
-
-        $users = User::all();  // Get all users
-        $booking = Booking::find($book_id);
-
-        if (!$booking) {
-            return redirect()->back()->withErrors(['message' => 'ไม่พบข้อมูลการจอง']);
-        }
-
-        // Pass data to the view
-        return view('user.room_detail', compact('user', 'room', 'users', 'booking'));
+        return response()->json($booking);
     }
 
+    // public function show($roomId, $book_id)
+    // {
+    //     $user = auth()->user();  // Get the logged-in user
+    //     $room = Room::find($roomId);  // Get the selected room
 
+    //     if (!$room) {
+    //         return redirect()->back()->withErrors(['message' => 'ห้องไม่พบ']);
+    //     }
+
+    //     $users = User::all();  // Get all users
+    //     $booking = Booking::where('book_id', $book_id)->firstOrFail();
+
+    //     $reason = cache()->get("booking_{$booking->book_id}_reject_reason");
+
+    //     if (!$booking) {
+    //         return redirect()->back()->withErrors(['message' => 'ไม่พบข้อมูลการจอง']);
+    //     }
+
+    //     // Pass data to the view
+    //     return view('user.room_detail', compact('user', 'room', 'users', 'booking', 'reason'));
+    // }
 
     public function store(Request $request)
     {
@@ -134,7 +142,15 @@ class BookingController extends Controller
         DB::beginTransaction();
         try {
             foreach ($booking as $data) {
-                Booking::create($data);
+                $createdBooking = Booking::create($data);
+
+                // หลังจากสร้างการจอง สำเร็จ ให้ push เข้า admin_notifications
+                $adminNotifications = Cache::get('admin_notifications', []);
+                $adminNotifications[] = [
+                    'message' => "มีการจองใหม่เข้ามา: {$data['booktitle']} วันที่ {$data['book_date']}",
+                    'timestamp' => now()->format('Y-m-d H:i:s'),
+                ];
+                Cache::put('admin_notifications', $adminNotifications, now()->addDays(7));
             }
             DB::commit();
             return redirect()->route('room.show', ['roomId' => $validated['room_id']])->with('success', 'การจองสำเร็จ!');
@@ -208,6 +224,29 @@ class BookingController extends Controller
             Log::error('Error fetching events: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function myBookings(Request $request)
+    {
+        $userId = auth()->id();
+        $bookings = Booking::where('user_id', $userId)->get();
+        $notifications = Cache::get("user_notifications_{$userId}", []);
+
+        return view('user.myBooking', compact('bookings', 'notifications'));
+    }
+
+    public function getRejectReason($booking_id)
+    {
+        $reason = cache()->get("booking_{$booking_id}_reject_reason", 'ไม่มีข้อมูล');
+        return response()->json(['reject_reason' => $reason]);
+    }
+
+    public function getNotifications()
+    {
+        $userId = auth()->id();
+        $notifications = Cache::get("user_notifications_{$userId}", []);
+
+        return response()->json(['notifications' => $notifications]);
     }
 }
 // public function getEvents(Request $request)

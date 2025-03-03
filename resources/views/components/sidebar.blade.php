@@ -14,7 +14,7 @@
         <!-- Menu Items -->
         <ul class="mt-4">
             <li>
-                <a href="{{ route('admin.bookings') }}" class="block py-3 px-6 hover:bg-gray-100 rounded-lg">
+                <a href="{{ route('admin.room.booking') }}" class="block py-3 px-6 hover:bg-gray-100 rounded-lg">
                     จัดการการจอง
                 </a>
             </li>
