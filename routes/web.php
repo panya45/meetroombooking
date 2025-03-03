@@ -9,6 +9,7 @@ use App\Http\Controllers\User\RoomUserController;
 use App\Http\Controllers\RoomDetailController;
 use App\Http\Controllers\user\BookingController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,6 +21,9 @@ use App\Http\Controllers\user\BookingController;
 |
 */
 
+Route::get('/resources/css/app.css', function () {
+    return response()->file(public_path('resources/css/app.css'));
+})->middleware('cache-control');
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -39,6 +43,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
@@ -77,7 +83,10 @@ Route::get('/rooms/{roomId}', [BookingController::class, 'show'])->name('rooms.s
 Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('room_detail');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show']);
     Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
+
+    // Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
     // แสดงฟอร์มการจอง
     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
 

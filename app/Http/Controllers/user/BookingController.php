@@ -160,43 +160,155 @@ class BookingController extends Controller
      */
     public function getEvents(Request $request)
     {
+
         $roomId = $request->input('room_id');
         $query = Booking::with('room', 'user');
-
+        Log::info('Room ID filter: ' . $roomId);
         if ($roomId) {
             $query->where('room_id', $roomId);
         } else {
             Log::info('No room filter applied, fetching all bookings.');
         }
+        try {
+            $bookings = $query->get();
 
+            if ($bookings->isEmpty()) {
+                Log::warning("No bookings found for room_id: " . ($roomId ?? 'all'));
+            }
+            $events = [];
 
-        $bookings = $query->get();
+            foreach ($bookings as $booking) {
 
-        if ($bookings->isEmpty()) {
-            Log::warning("No bookings found for room_id: " . ($roomId ?? 'all'));
+                $start = Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->start_time}");
+                $end = Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->end_time}");
+
+                $events[] = [
+                    'id' => $booking->id,
+                    'title' => $booking->booktitle,
+                    'start' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->start_time}")->toIso8601String(),
+                    'end' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->end_time}")->toIso8601String(),
+                    'className' => 'event-color-' . ($booking->room_id % 5),
+                    'extendedProps' => [
+                        'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
+                        'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
+                        'email' => $booking->email ?? 'ไม่ระบุอีเมล',
+                        'bookdetail' => $booking->bookdetail ?? '',
+                        'booktel' => $booking->booktel ?? '',
+                        'book_date' => $booking->book_date ?? '',
+                        'start_time' => $booking->start_time ?? '',
+                        'end_time' => $booking->end_time ?? '',
+                        'bookstatus' => $booking->bookstatus ?? '',
+
+                    ]
+                ];
+            }
+            return response()->json($events);
+        } catch (\Exception $e) {
+            // Log the error and return a server error response
+            Log::error('Error fetching events: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $events = [];
-
-        foreach ($bookings as $booking) {
-            $events[] = [
-                'id' => $booking->id,
-                'title' => $booking->booktitle,
-                'start' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->start_time}")->toIso8601String(),
-                'end' => Carbon::createFromFormat('Y-m-d H:i:s', "{$booking->book_date} {$booking->end_time}")->toIso8601String(),
-                'className' => 'event-color-' . ($booking->room_id % 5),
-                'extendedProps' => [
-                    'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
-                    'username' => $booking->username ?? 'ไม่ระบุชื่อผู้จอง',
-                    'email' => $booking->email ?? 'ไม่ระบุอีเมล',
-                    'bookdetail' => $booking->bookdetail ?? '',
-                    'booktel' => $booking->booktel ?? '',
-                    'bookstatus' => $booking->bookstatus ?? '',
-
-                ]
-            ];
-        }
-
-        return response()->json($events);
     }
 }
+// public function getEvents(Request $request)
+    // {
+    //     try {
+    //         // Step 1: Retrieve and filter bookings based on room_id
+    //         $bookings = $this->getBookings($request);
+
+    //         // Step 2: If no bookings found, log a warning
+    //         if ($bookings->isEmpty()) {
+    //             Log::warning("No bookings found for room_id: " . ($request->input('room_id') ?? 'all'));
+    //         }
+
+    //         // Step 3: Transform bookings into event data
+    //         $events = $this->transformBookingsToEvents($bookings);
+
+    //         return response()->json($events);
+    //     } catch (\Exception $e) {
+    //         // Log the error and return a server error response
+    //         Log::error('Error fetching events: ' . $e->getMessage());
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
+
+    // /**
+    //  * Get bookings based on room_id filter.
+    //  *
+    //  * @param Request $request
+    //  * @return \Illuminate\Database\Eloquent\Collection
+    //  */
+    // private function getBookings(Request $request)
+    // {
+    //     $roomId = $request->input('room_id');
+    //     $query = Booking::with('room', 'user');
+
+    //     Log::info('Room ID filter: ' . $roomId);
+    //     if ($roomId) {
+    //         $query->where('room_id', $roomId);
+    //     } else {
+    //         Log::info('No room filter applied, fetching all bookings.');
+    //     }
+
+    //     return $query->get();
+    // }
+
+    // /**
+    //  * Transform bookings into events data structure for the calendar.
+    //  *
+    //  * @param \Illuminate\Database\Eloquent\Collection $bookings
+    //  * @return array
+    //  */
+    // private function transformBookingsToEvents($bookings)
+    // {
+    //     $events = [];
+
+    //     foreach ($bookings as $booking) {
+    //         $start = $this->getEventTime($booking->book_date, $booking->start_time);
+    //         $end = $this->getEventTime($booking->book_date, $booking->end_time);
+
+    //         $events[] = [
+    //             'id' => $booking->id,
+    //             'title' => $booking->booktitle,
+    //             'start' => $start->toIso8601String(),
+    //             'end' => $end->toIso8601String(),
+    //             'className' => 'event-color-' . ($booking->room_id % 5),
+    //             'extendedProps' => $this->getExtendedProps($booking),
+    //         ];
+    //     }
+
+    //     return $events;
+    // }
+
+    // /**
+    //  * Get the formatted Carbon time instance for event start and end times.
+    //  *
+    //  * @param string $bookDate
+    //  * @param string $time
+    //  * @return \Carbon\Carbon
+    //  */
+    // private function getEventTime($bookDate, $time)
+    // {
+    //     return Carbon::createFromFormat('Y-m-d H:i:s', "{$bookDate} {$time}");
+    // }
+
+    // /**
+    //  * Get extended properties for each event.
+    //  *
+    //  * @param Booking $booking
+    //  * @return array
+    //  */
+    // private function getExtendedProps($booking)
+    // {
+    //     return [
+    //         'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
+    //         'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
+    //         'email' => $booking->email ?? 'ไม่ระบุอีเมล',
+    //         'bookdetail' => $booking->bookdetail ?? '',
+    //         'booktel' => $booking->booktel ?? '',
+    //         'book_date' => $booking->book_date ?? '',
+    //         'start_time' => $booking->start_time ?? '',
+    //         'end_time' => $booking->end_time ?? '',
+    //         'bookstatus' => $booking->bookstatus ?? '',
+    //     ];
+    // }
