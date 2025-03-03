@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
                 $notifications = Cache::get("user_notifications_{$userId}", []);
                 $view->with('notifications', $notifications);
             }
+            $view->with('user', Auth::user());
         });
     }
 }

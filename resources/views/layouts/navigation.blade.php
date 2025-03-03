@@ -1,3 +1,4 @@
+
 <nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center" x-data="navigationComponent()">
 
     <!-- Left Section: Hamburger Button (Sidebar) -->
@@ -65,10 +66,12 @@
         </div>
 
         <!-- Profile Dropdown -->
-        <div class="relative">
-            <button @click="profileOpen = !profileOpen" class="flex items-center focus:outline-none">
-                <img class="w-8 h-8 rounded-full" src="{{ auth()->user()->profile_photo_url }}"
-                    alt="{{ auth()->user()->name }}'s Profile">
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center focus:outline-none">
+                <img class="w-8 h-8 rounded-full"
+                    src="{{ isset($user) && $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avarta-default.png') }}"
+                    alt="User Avatar">
+                    
                 <div class="ml-2 text-left">
                     <span class="block text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
                     <span class="block text-xs text-gray-500">{{ auth()->user()->email }}</span>

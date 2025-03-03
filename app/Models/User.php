@@ -22,6 +22,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'avatar'
     ];
 
 
@@ -47,5 +48,10 @@ class User extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+    // สร้างการเชื่อมโยงกับไฟล์ avatar
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar ? asset('storage/' . $this->avatar) : asset('images/avarta-default.png');
     }
 }
