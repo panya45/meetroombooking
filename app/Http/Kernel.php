@@ -70,5 +70,7 @@ class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         'admin.auth' => \App\Http\Middleware\AdminMiddleware::class,
+        'cache-control' => \App\Http\Middleware\CacheControlHeader::class,
+
     ];
 }

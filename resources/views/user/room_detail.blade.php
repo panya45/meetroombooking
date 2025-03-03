@@ -30,6 +30,7 @@
                                 class="w-full h-full object-cover">
                         @endif
                     </div>
+
                     <!-- Section รายละเอียดห้อง -->
                     <div class="md:w-2/3 p-6">
                         <h2 class="text-3xl font-bold mb-4">{{ $room->room_name }}</h2>
@@ -53,6 +54,7 @@
                                 class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
                                 จองห้องเลย
                             </button>
+
 
                             <!-- Modal Backdrop and Content -->
                             <div x-show="openBookingModal" x-cloak
@@ -210,8 +212,7 @@
                                     <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p>
                                 </div>
                                 <!-- Modal แสดงข้อความ -->
-                                <div id="success-modal"
-                                    class="modal fixed inset-0 flex items-center justify-center z-50">
+                                <div id="success-modal" class="modal fixed inset-0 flex items-center justify-center z-50">
                                     <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
                                         <h3 class="text-xl font-bold mb-4">จองห้องสำเร็จ!</h3>
                                         <p class="text-green-500">การจองของคุณเสร็จสมบูรณ์แล้ว</p>

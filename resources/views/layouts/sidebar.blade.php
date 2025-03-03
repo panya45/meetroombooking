@@ -15,6 +15,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
+
         <nav class="mt-6">
             <a href="{{ route('dashboard') }}"
                 class="block py-3 px-6 rounded-lg text-blue-600 bg-blue-100 font-medium items-center">
