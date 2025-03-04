@@ -219,7 +219,6 @@
         }
     }
 </style>
-
 <body>
     @extends('layouts.app')
     <div class="pt-24">

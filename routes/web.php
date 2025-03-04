@@ -13,6 +13,7 @@ use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
 
+use App\Http\Controllers\User\UserDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +34,9 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('user.dashboard');
 // Route::prefix('admin/room')->middleware('auth')->group(function () {
 //     Route::post('/', [AdminRoomController::class, 'create']);
 //     Route::get('/', [AdminRoomController::class, 'index']);
@@ -154,3 +155,20 @@ Route::post('/notifications/remove', function (Request $request) {
 })->name('notifications.remove');
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);
+
+
+
+
+
+
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name(name: 'dashboard');
+    Route::get('/dashboard/bookings', [UserDashboardController::class, 'getUserBookings'])->name('user.bookings');
+    Route::get('/dashboard/booking/{booking_id}/reject-reason', [UserDashboardController::class, 'getRejectReason'])
+        ->name('user.booking.rejectReason');
+    Route::get('/dashboard/notifications', [UserDashboardController::class, 'getNotifications'])
+        ->name('user.notifications');
+});
