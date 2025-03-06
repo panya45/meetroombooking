@@ -34,7 +34,7 @@
         </header>
     @endif
 
-    <div class="pt-20">
+    <div >
         <main>
             @yield('content')
         </main>

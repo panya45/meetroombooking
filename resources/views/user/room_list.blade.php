@@ -13,7 +13,7 @@
 
 </head>
 
-<body class="bg-gray-100 pt-24" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-100" x-data="{ sidebarOpen: false }">
     @extends('layouts.app')
     @section('content')
     @include('layouts.navigation')
