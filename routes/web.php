@@ -100,8 +100,6 @@ Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('roo
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show']);
-    Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
-
     // Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
     // แสดงฟอร์มการจอง
     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
@@ -110,15 +108,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 });
 
-// แสดงหน้าปฏิทิน
+Route::get('/user/booking/{booking_id}', [BookingController::class, 'show'])->name('booking.show');
+Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
+Route::get('/user/my-bookings', [BookingController::class, 'myBookings'])->middleware('auth')->name('myBookings');
+Route::get('/get-reject-reason/{booking_id}', [BookingController::class, 'getRejectReason']);
+Route::get('/get-notifications', [BookingController::class, 'getNotifications']);
 
-// API สำหรับดึงข้อมูลการจอง
-Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
-
-Route::get('/booking/events', [BookingController::class, 'getEvents'])->name('booking.events');
-
-Route::get('/book_detail', [BookingController::class, 'detail'])->name('booking.detail');
 
 Route::get('/user/myBooking', [BookingController::class, 'myBookings'])->name('user.myBooking');
 
@@ -153,22 +149,14 @@ Route::post('/notifications/remove', function (Request $request) {
 
     return response()->json(['message' => 'Notification removed']);
 })->name('notifications.remove');
+Route::middleware('auth')->group(function () {
+    // Route สำหรับหน้า Dashboard
+    Route::get('/dashboard', function () {
+        return view('user.dashboard');
+    })->middleware(['auth', 'verified'])->name('user.dashboard');
+});
+
+Route::get('/dashboard', [BookingController::class, 'showDashboard'])->name('dashboard');
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);
-
-
-
-
-
-
-
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name(name: 'dashboard');
-    Route::get('/dashboard/bookings', [UserDashboardController::class, 'getUserBookings'])->name('user.bookings');
-    Route::get('/dashboard/booking/{booking_id}/reject-reason', [UserDashboardController::class, 'getRejectReason'])
-        ->name('user.booking.rejectReason');
-    Route::get('/dashboard/notifications', [UserDashboardController::class, 'getNotifications'])
-        ->name('user.notifications');
-});
+Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');

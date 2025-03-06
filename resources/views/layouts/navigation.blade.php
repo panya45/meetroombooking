@@ -1,4 +1,3 @@
-
 <nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center" x-data="navigationComponent()">
 
     <!-- Left Section: Hamburger Button (Sidebar) -->
@@ -48,7 +47,7 @@
                 <div class="max-h-64 overflow-y-auto">
                     @forelse ($notifications as $index => $notification)
                         <div class="px-4 py-2 text-sm text-gray-600 border-b flex justify-between items-center">
-                            <a href="{{ route('user.myBooking') }}@if (!empty($notification['booking_id'])) ?booking_id={{ $notification['booking_id'] }} @endif"
+                            <a href="{{ $notification['booking_id'] ? route('booking.show', ['booking_id' => $notification['booking_id']]) : '#' }}"
                                 class="flex-1 hover:underline">
                                 {{ $notification['message'] }}<br>
                                 <span class="text-xs text-gray-400">{{ $notification['timestamp'] ?? '-' }}</span>
@@ -64,14 +63,13 @@
                 </div>
             </div>
         </div>
-
         <!-- Profile Dropdown -->
-        <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open" class="flex items-center focus:outline-none">
+        <div class="relative" x-data="{ open: false, profileOpen: false }">
+            <button @click="profileOpen = !profileOpen" class="flex items-center focus:outline-none">
                 <img class="w-8 h-8 rounded-full"
                     src="{{ isset($user) && $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avarta-default.png') }}"
                     alt="User Avatar">
-                    
+
                 <div class="ml-2 text-left">
                     <span class="block text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
                     <span class="block text-xs text-gray-500">{{ auth()->user()->email }}</span>
@@ -81,19 +79,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-
             <!-- Dropdown Menu -->
             <div x-show="profileOpen" @click.away="profileOpen = false"
                 class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg overflow-hidden">
                 <a href="{{ route('profile.edit') }}"
                     class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
                 <a href="{{ route('rooms.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Rooms</a>
-                <a href="{{ route('booking.show', ['roomId' => 1]) }}"
+                <a href="{{ route('booking.show', ['booking_id' => 1]) }}"
                     class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Book a Room</a>
                 <button onclick="document.getElementById('logout-form').submit()"
                     class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">Logout</button>
             </div>
         </div>
+
     </div>
 </nav>
 

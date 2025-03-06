@@ -13,12 +13,11 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/th.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
-
 </head>
-
 <body x-data="{ sidebarOpen: false }" class="bg-gray-100">
     @extends('layouts.app')
     @include('layouts.navigation')
+    @include('layouts.sidebar')
     @section('content')
         <div class="max-w-6xl mx-auto">
             <h1 class="text-2xl font-bold mb-4">📅 Dashboard - ระบบจองห้องประชุม</h1>
@@ -54,17 +53,12 @@
                     </ul>
                 </div>
 
+
                 <!-- ห้องที่พร้อมให้จอง -->
                 <div class="bg-white p-4 rounded-xl shadow-md">
                     <h2 class="text-lg font-semibold">🏢 ห้องประชุมที่พร้อมจอง</h2>
-                    <ul class="text-sm text-gray-600 mt-2">
-                        @forelse ($rooms as $room)
-                            <li class="{{ $room->status === 'available' ? 'text-green-500' : 'text-red-500' }}">
-                                {{ $room->status === 'available' ? '🔴' : '🟢' }} {{ $room->room_name }}
-                            </li>
-                        @empty
-                            <li class="text-gray-400">ไม่มีห้องประชุมที่พร้อมใช้งาน</li>
-                        @endforelse
+                    <ul id="roomList" class="text-sm text-gray-600 mt-2">
+                        <!-- ข้อมูลห้องประชุมจะแสดงที่นี่ -->
                     </ul>
                 </div>
             </div>
@@ -240,6 +234,41 @@
                     calendar.refetchEvents();
                 });
             });
+        </script>
+        <script>
+            // ฟังก์ชันสำหรับดึงข้อมูลห้องประชุมจาก API
+            function fetchAvailableRooms() {
+                fetch('/api/rooms/available') // API ที่ดึงข้อมูลห้องประชุมที่พร้อมจอง
+                    .then(response => response.json()) // แปลงข้อมูลเป็น JSON
+                    .then(data => {
+                        const roomList = document.getElementById('roomList');
+                        roomList.innerHTML = ''; // เคลียร์รายการเดิม
+
+                        if (data.length === 0) {
+                            roomList.innerHTML = '<li class="text-gray-400">ไม่มีห้องประชุมที่พร้อมใช้งาน</li>';
+                        } else {
+                            data.forEach(room => {
+                                const roomStatusClass = room.room_status === 'available' ? 'text-green-500' :
+                                    'text-red-500';
+                                const statusIcon = room.room_status === 'available' ? '🔴' : '🟢';
+                                const roomItem = `
+                                <li class="${roomStatusClass}">
+                                    ${statusIcon} ${room.room_name}
+                                </li>
+                            `;
+                                roomList.innerHTML += roomItem;
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching rooms:', error);
+                        const roomList = document.getElementById('roomList');
+                        roomList.innerHTML = '<li class="text-gray-400">เกิดข้อผิดพลาดในการดึงข้อมูลห้องประชุม</li>';
+                    });
+            }
+
+            // เรียกฟังก์ชันดึงข้อมูลห้องประชุมเมื่อโหลดหน้า
+            document.addEventListener('DOMContentLoaded', fetchAvailableRooms);
         </script>
     @endsection
 </body>

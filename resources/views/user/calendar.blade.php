@@ -219,20 +219,13 @@
         }
     }
 </style>
+
 <body>
     @extends('layouts.app')
-    <div class="pt-24">
-        @include('layouts.navigation')
-    </div>
+    @include('layouts.navigation')
     @section('content')
         <div class="antialiased sans-serif h-screen">
-
             <div class="flex flex-col items-center">
-                <div class="btn-option mb-4">
-                    <button id="month-view"class="btn btn-primary mx-1">เดือน</button>
-                    <button id="week-view" class="btn btn-primary mx-1">สัปดาห์</button>
-                    <button id="day-view" class="btn btn-primary mx-1">วัน</button>
-                </div>
                 <div id="calendar" class="mx-auto px-4 py-2 md:py-24 rounded-lg shadow-md p-6 w-[50%]"></div>
             </div>
             <!-- Modal for Event Details -->
@@ -277,6 +270,17 @@
                     eventTextColor: 'white', //
                     eventBackgroundColor: '#0080ff',
                     events: '/get-events',
+                    headerToolbar: { // เพิ่มส่วนหัวสำหรับการเลือกมุมมอง (เช่น เดือน, สัปดาห์, วัน)
+                        left: 'prev,next today', // ปุ่มก่อนหน้า, ถัดไป, วันนี้
+                        center: 'title', // ชื่อเดือน
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay', // ปุ่มมุมมองเดือน, สัปดาห์, วัน
+                    },
+                    buttonText: {
+                        today: 'วันนี้',
+                        month: 'เดือน',
+                        week: 'สัปดาห์',
+                        day: 'วัน',
+                    },
                     eventClick: function(info) {
                         // ฟังก์ชันจัดการการคลิก event
                         var modal = new bootstrap.Modal(document.getElementById('eventModal'));

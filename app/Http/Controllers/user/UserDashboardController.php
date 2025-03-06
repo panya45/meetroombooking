@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use App\Models\User;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -15,22 +16,47 @@ class UserDashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth'); // ใช้การตรวจสอบการเข้าสู่ระบบแบบ Web
     }
 
     public function index()
     {
         $user = Auth::user();
         $bookings = Booking::where('user_id', $user->id)->with('room')->get();
-        $rooms = Room::all(); // Fetch all rooms
+        $rooms = Room::all();
         $notifications = Cache::get("user_notifications_{$user->id}", []);
 
-        return view('user.dashboard', compact('user', 'bookings', 'rooms', 'notifications'));
+        return response()->json([
+            'user' => $user,
+            'bookings' => $bookings,
+            'rooms' => $rooms,
+            'notifications' => $notifications,
+        ]);
 
     }
+    public function getUserDashboardById($user_id)
+    {
+        // ตรวจสอบว่ามีผู้ใช้ที่มี ID นี้หรือไม่
+        $user = User::find($user_id);
 
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $bookings = Booking::where('user_id', $user_id)->with('room')->get();
+        $rooms = Room::all();
+        $notifications = Cache::get("user_notifications_{$user_id}", []);
+
+        return response()->json([
+            'user' => $user,
+            'bookings' => $bookings,
+            'rooms' => $rooms,
+            'notifications' => $notifications,
+        ]);
+    }
     public function getUserBookings()
     {
+
         $userId = Auth::id();
         $bookings = Booking::where('user_id', $userId)->get();
 
@@ -42,7 +68,7 @@ class UserDashboardController extends Controller
                 'end' => Carbon::parse("{$booking->book_date} {$booking->end_time}")->toIso8601String(),
                 'className' => 'event-color-' . ($booking->room_id % 5),
                 'extendedProps' => [
-                    'room' => $booking->room ? $booking->room->room_name : 'ไม่ระบุห้อง',
+                    'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
                     'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
                     'email' => $booking->email ?? 'ไม่ระบุอีเมล',
                     'bookdetail' => $booking->bookdetail ?? '',

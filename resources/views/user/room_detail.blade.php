@@ -207,30 +207,28 @@
                                             class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
                                             ส่งข้อมูลการจอง
                                         </button>
+                                        <button id="close-modal" @click="openBookingModal = false"
+                                            class="bg-red-500 text-white px-4 py-2 rounded mt-4">ยกเลิก</button>
                                     </form>
-
-                                    <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p>
+                                    {{-- <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p> --}}
                                 </div>
-                                <!-- Modal แสดงข้อความ -->
-                                <div id="success-modal" class="modal fixed inset-0 flex items-center justify-center z-50">
-                                    <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
-                                        <h3 class="text-xl font-bold mb-4">จองห้องสำเร็จ!</h3>
-                                        <p class="text-green-500">การจองของคุณเสร็จสมบูรณ์แล้ว</p>
-                                        <!-- ปุ่มดูรายละเอียดการจอง -->
-                                        <button id="view-details-btn"
-                                            onclick="window.location.href='{{ url('/book_detail') }}?id={{ $singleBooking->id ?? '' }}'"
-                                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                                            ดูรายละเอียดการจอง
-                                        </button>
+                            </div>
+                        </div><!-- Success Modal -->
+                        <div id="success-modal" class="modal fixed inset-0 flex items-center justify-center z-50 hidden">
+                            <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
+                                <h3 class="text-xl font-bold mb-4">จองห้องสำเร็จ!</h3>
+                                <p class="text-green-500">การจองของคุณเสร็จสมบูรณ์แล้ว</p>
+                                <button id="view-details-btn"
+                                    onclick="window.location.href='{{ url('/book_detail') }}?id={{ $singleBooking->id ?? '' }}'"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                                    ดูรายละเอียดการจอง
+                                </button>
 
-                                        <button id="close-modal-btn"
-                                            class="bg-red-500 text-white px-4 py-2 rounded mt-4">ปิด</button>
-                                    </div>
-                                </div>
+                                <button id="close-modal-btn" @click="openBookingModal = false"
+                                    class="bg-red-500 text-white px-4 py-2 rounded mt-4">ปิด</button>
                             </div>
                         </div>
                         <!-- End of Booking Button and Modal -->
-
                         <div class="mt-6">
                             <a href="{{ route('rooms.index') }}"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
@@ -243,21 +241,26 @@
                 @endif
             </div>
         </div>
+
     @endsection
 </body>
 <script>
+    // Check if there is a success session and show modal if necessary
     @if (session('success'))
-        // Function to show the modal after booking submission
-        document.getElementById('booking-modal').classList.remove('hidden'); // Show modal
-        document.getElementById('success-message').textContent = '{{ session('message') }}'; // Success message
-
-        // Show the "View Booking Details" button
-        document.getElementById('view-details-btn').classList.remove('hidden');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show modal after page load if success session exists
+            document.getElementById('success-message').classList.remove('hidden');
+        });
     @endif
 
     // Close the modal when the "Close" button is clicked
     document.getElementById('close-modal-btn')?.addEventListener('click', function() {
-        document.getElementById('booking-modal').classList.add('hidden');
+        document.getElementById('success-modal').classList.add('hidden');
+    });
+
+    // Additional modal handling (view details or close modal)
+    document.getElementById('view-details-btn')?.addEventListener('click', function() {
+        window.location.href = '{{ route('booking.show', ['booking_id' => $room->id]) }}';
     });
 </script>
 <script>
@@ -275,35 +278,40 @@
         });
     @endif
 </script>
-
-
 <script>
     document.getElementById('booking-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form from submitting normally
 
-        // Simulate form submission success
-        setTimeout(function() {
-            // Show success message and "View Details" button
-            document.getElementById('success-message').classList.remove('hidden');
-            document.getElementById('details-section').classList.remove('hidden');
-            document.getElementById('booking-modal').classList.add(
-                'hidden'); // Hide the modal after submission
-
-            // Show success modal
-            document.getElementById('success-modal').classList.remove('hidden');
-        }, 1000); // Simulate a delay in submission
-
-        // Optionally, send data using AJAX for real-time functionality
-    });
-
-    // Close the success modal
-    document.getElementById('close-modal-btn').addEventListener('click', function() {
-        document.getElementById('success-modal').classList.add('hidden');
-    });
-
-    // View details button functionality
-    document.getElementById('view-details-btn').addEventListener('click', function() {
-        window.location.href = '{{ route('booking.show', ['roomId' => $room->id]) }}'; // Corrected to roomId
+        // ส่งข้อมูลการจองไปยัง server
+        fetch("{{ route('booking.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content'),
+                },
+                body: JSON.stringify({
+                    // ใส่ข้อมูลที่ต้องการส่งไป (สามารถดึงจากฟอร์มได้)
+                    room_id: document.getElementById('room_id').value,
+                    start_time: document.getElementById('start_time').value,
+                    end_time: document.getElementById('end_time').value,
+                    book_date: document.getElementById('book_date').value,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    // ถ้ามีข้อผิดพลาดจากเซิร์ฟเวอร์ ให้แสดงข้อผิดพลาดในหน้าเว็บ
+                    alert(data.message); // หรือแสดงข้อความผิดพลาดในส่วนที่คุณต้องการ
+                } else {
+                    // หากการจองสำเร็จ
+                    window.location.href = '/booking-success'; // หรือที่คุณต้องการเปลี่ยนเส้นทางไป
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+            });
     });
 </script>
 <script>

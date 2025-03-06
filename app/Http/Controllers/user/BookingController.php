@@ -21,34 +21,19 @@ class BookingController extends Controller
         $this->middleware('auth');
     }
 
+    // Method สำหรับแสดงข้อมูลการจอง (สามารถทำงานทั้ง Web และ API)
     public function show($booking_id)
     {
         $booking = Booking::where('book_id', $booking_id)->firstOrFail();
 
-        return response()->json($booking);
+        // ถ้าเรียกจาก API ให้ส่งข้อมูลในรูปแบบ JSON
+        if (request()->wantsJson()) {
+            return response()->json($booking);
+        }
+
+        // ถ้าเรียกจาก Web ให้แสดงข้อมูลผ่าน View
+        return view('user.booking.show', compact('booking'));
     }
-
-    // public function show($roomId, $book_id)
-    // {
-    //     $user = auth()->user();  // Get the logged-in user
-    //     $room = Room::find($roomId);  // Get the selected room
-
-    //     if (!$room) {
-    //         return redirect()->back()->withErrors(['message' => 'ห้องไม่พบ']);
-    //     }
-
-    //     $users = User::all();  // Get all users
-    //     $booking = Booking::where('book_id', $book_id)->firstOrFail();
-
-    //     $reason = cache()->get("booking_{$booking->book_id}_reject_reason");
-
-    //     if (!$booking) {
-    //         return redirect()->back()->withErrors(['message' => 'ไม่พบข้อมูลการจอง']);
-    //     }
-
-    //     // Pass data to the view
-    //     return view('user.room_detail', compact('user', 'room', 'users', 'booking', 'reason'));
-    // }
 
     public function store(Request $request)
     {
@@ -141,10 +126,28 @@ class BookingController extends Controller
         // บันทึกข้อมูลการจอง
         DB::beginTransaction();
         try {
+            // บันทึกข้อมูลการจอง
+            $booking = [];
+            foreach ($validated['book_date'] as $index => $book_date) {
+                $booking[] = [
+                    'user_id' => auth()->id(),
+                    'room_id' => $validated['room_id'],
+                    'booktitle' => $validated['booktitle'],
+                    'bookdetail' => $validated['bookdetail'],
+                    'booktel' => $validated['booktel'],
+                    'username' => auth()->user()->username,
+                    'email' => auth()->user()->email,
+                    'book_date' => $book_date,
+                    'start_time' => $validated['start_time'][$index],
+                    'end_time' => $validated['end_time'][$index],
+                    'bookstatus' => 'pending',
+                ];
+            }
+
             foreach ($booking as $data) {
                 $createdBooking = Booking::create($data);
 
-                // หลังจากสร้างการจอง สำเร็จ ให้ push เข้า admin_notifications
+                // เพิ่ม Notification สำหรับ admin
                 $adminNotifications = Cache::get('admin_notifications', []);
                 $adminNotifications[] = [
                     'message' => "มีการจองใหม่เข้ามา: {$data['booktitle']} วันที่ {$data['book_date']}",
@@ -153,16 +156,28 @@ class BookingController extends Controller
                 Cache::put('admin_notifications', $adminNotifications, now()->addDays(7));
             }
             DB::commit();
+
+            // ถ้าเรียกจาก API, ส่ง response เป็น JSON
+            if (request()->wantsJson()) {
+                return response()->json(['message' => 'การจองสำเร็จ!']);
+            }
+
+            // ถ้าเรียกจาก Web, ส่งกลับไปยังหน้าแสดงผล
             return redirect()->route('room.show', ['roomId' => $validated['room_id']])->with('success', 'การจองสำเร็จ!');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error("Booking Error: " . $e->getMessage());
-            return redirect()->back()->withErrors([
-                'success' => false,
-                'message' => "เกิดข้อผิดพลาดในการบันทึกข้อมูล: " . $e->getMessage()
-            ], 500);
+
+            // ส่งข้อผิดพลาดสำหรับ API
+            if (request()->wantsJson()) {
+                return response()->json(['error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'], 500);
+            }
+
+            // ส่งข้อผิดพลาดสำหรับ Web
+            return redirect()->back()->withErrors(['message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล']);
         }
     }
+
 
 
     public function calendar()
@@ -229,10 +244,39 @@ class BookingController extends Controller
     public function myBookings(Request $request)
     {
         $userId = auth()->id();
-        $bookings = Booking::where('user_id', $userId)->get();
+        $bookings = Booking::where('user_id', auth()->id())->get();
+
+        // ตรวจสอบว่าได้ข้อมูลการจองหรือไม่
+        if ($bookings->isEmpty()) {
+            // ถ้าไม่มีการจอง ให้ส่งข้อความหรือข้อมูลที่เกี่ยวข้อง
+            return response()->json(['message' => 'ไม่มีการจองสำหรับผู้ใช้นี้'], 404);
+        }
+
         $notifications = Cache::get("user_notifications_{$userId}", []);
 
+        // ตรวจสอบว่าเรียกจาก Web หรือ API
+        if (request()->wantsJson()) {
+            return response()->json([
+                'bookings' => $bookings,
+                'notifications' => $notifications
+            ]);
+        }
+
         return view('user.myBooking', compact('bookings', 'notifications'));
+    }
+
+    public function showDashboard()
+    {
+        $bookings = Booking::where('user_id', auth()->id())->get();
+        return view('user.dashboard', compact('bookings'));
+    }
+    public function showAvailableRooms()
+    {
+        // ดึงข้อมูลห้องประชุมที่สถานะเป็น 'available' (ปรับจาก status เป็น room_status)
+        $rooms = Room::where('room_status', 'available')->get();
+
+        // ส่งตัวแปร $rooms ไปยัง View
+        return response()->json($rooms); // ใช้ response เป็น JSON สำหรับ API
     }
 
     public function getRejectReason($booking_id)
@@ -249,105 +293,3 @@ class BookingController extends Controller
         return response()->json(['notifications' => $notifications]);
     }
 }
-// public function getEvents(Request $request)
-    // {
-    //     try {
-    //         // Step 1: Retrieve and filter bookings based on room_id
-    //         $bookings = $this->getBookings($request);
-
-    //         // Step 2: If no bookings found, log a warning
-    //         if ($bookings->isEmpty()) {
-    //             Log::warning("No bookings found for room_id: " . ($request->input('room_id') ?? 'all'));
-    //         }
-
-    //         // Step 3: Transform bookings into event data
-    //         $events = $this->transformBookingsToEvents($bookings);
-
-    //         return response()->json($events);
-    //     } catch (\Exception $e) {
-    //         // Log the error and return a server error response
-    //         Log::error('Error fetching events: ' . $e->getMessage());
-    //         return response()->json(['error' => $e->getMessage()], 500);
-    //     }
-    // }
-
-    // /**
-    //  * Get bookings based on room_id filter.
-    //  *
-    //  * @param Request $request
-    //  * @return \Illuminate\Database\Eloquent\Collection
-    //  */
-    // private function getBookings(Request $request)
-    // {
-    //     $roomId = $request->input('room_id');
-    //     $query = Booking::with('room', 'user');
-
-    //     Log::info('Room ID filter: ' . $roomId);
-    //     if ($roomId) {
-    //         $query->where('room_id', $roomId);
-    //     } else {
-    //         Log::info('No room filter applied, fetching all bookings.');
-    //     }
-
-    //     return $query->get();
-    // }
-
-    // /**
-    //  * Transform bookings into events data structure for the calendar.
-    //  *
-    //  * @param \Illuminate\Database\Eloquent\Collection $bookings
-    //  * @return array
-    //  */
-    // private function transformBookingsToEvents($bookings)
-    // {
-    //     $events = [];
-
-    //     foreach ($bookings as $booking) {
-    //         $start = $this->getEventTime($booking->book_date, $booking->start_time);
-    //         $end = $this->getEventTime($booking->book_date, $booking->end_time);
-
-    //         $events[] = [
-    //             'id' => $booking->id,
-    //             'title' => $booking->booktitle,
-    //             'start' => $start->toIso8601String(),
-    //             'end' => $end->toIso8601String(),
-    //             'className' => 'event-color-' . ($booking->room_id % 5),
-    //             'extendedProps' => $this->getExtendedProps($booking),
-    //         ];
-    //     }
-
-    //     return $events;
-    // }
-
-    // /**
-    //  * Get the formatted Carbon time instance for event start and end times.
-    //  *
-    //  * @param string $bookDate
-    //  * @param string $time
-    //  * @return \Carbon\Carbon
-    //  */
-    // private function getEventTime($bookDate, $time)
-    // {
-    //     return Carbon::createFromFormat('Y-m-d H:i:s', "{$bookDate} {$time}");
-    // }
-
-    // /**
-    //  * Get extended properties for each event.
-    //  *
-    //  * @param Booking $booking
-    //  * @return array
-    //  */
-    // private function getExtendedProps($booking)
-    // {
-    //     return [
-    //         'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
-    //         'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
-    //         'email' => $booking->email ?? 'ไม่ระบุอีเมล',
-    //         'bookdetail' => $booking->bookdetail ?? '',
-    //         'booktel' => $booking->booktel ?? '',
-    //         'book_date' => $booking->book_date ?? '',
-    //         'start_time' => $booking->start_time ?? '',
-    //         'end_time' => $booking->end_time ?? '',
-    //         'bookstatus' => $booking->bookstatus ?? '',
-    //     ];
-    // }
