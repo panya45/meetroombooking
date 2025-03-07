@@ -13,18 +13,6 @@ use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
 Route::get('/resources/css/app.css', function () {
     return response()->file(public_path('resources/css/app.css'));
 })->middleware('cache-control');
@@ -35,14 +23,6 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Route::prefix('admin/room')->middleware('auth')->group(function () {
-//     Route::post('/', [AdminRoomController::class, 'create']);
-//     Route::get('/', [AdminRoomController::class, 'index']);
-//     Route::get('{id}', [AdminRoomController::class, 'show']);
-//     Route::put('{id}', [AdminRoomController::class, 'update']);
-//     Route::delete('{id}', [AdminRoomController::class, 'destroy']);
-// });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -56,38 +56,6 @@ class AdminBookingController extends Controller
         return redirect()->back()->with('success', 'ปฏิเสธการจองเรียบร้อยแล้ว');
     }
 
-    // public function updateStatus(Request $request, $bookId)
-    // {
-    //     $booking = Booking::where('book_id', $bookId)->firstOrFail();
-
-    //     $status = $request->input('status');
-    //     $reason = $request->input('reason'); // ดึงเหตุผลที่ส่งมา
-    //     $message = '';
-
-    //     if ($status === 'approved') {
-    //         $booking->update(['bookstatus' => 'approved']);
-    //         cache()->forget("booking_{$bookId}_reject_reason"); // เคลียร์เหตุผลเก่าออกถ้ามี
-    //         $message = "✅ การจองหมายเลข #{$booking->book_id} ได้รับการอนุมัติแล้ว";
-    //     } elseif ($status === 'rejected') {
-    //         $booking->update(['bookstatus' => 'rejected']);
-    //         cache()->put("booking_{$bookId}_reject_reason", $reason, now()->addDay()); // เก็บ 1 วัน
-    //         $message = "❌ การจองหมายเลข #{$booking->book_id} ถูกปฏิเสธ: {$reason}";
-    //     }
-
-    //     // *** เพิ่ม Notification เข้า Cache ของ User ***
-    //     $userId = $booking->user_id;
-    //     $notifications = cache()->get("user_notifications_{$userId}", []);
-
-    //     $notifications[] = [
-    //         'message' => $message,
-    //         'timestamp' => now()->format('Y-m-d H:i:s'),
-    //     ];
-
-    //     cache()->put("user_notifications_{$userId}", $notifications, now()->addDays(7)); // เก็บ 7 วัน
-
-    //     return response()->json(['message' => 'Booking status updated', 'booking' => $booking]);
-    // }
-
     public function updateStatus(Request $request, $bookId)
     {
         $booking = Booking::where('book_id', $bookId)->firstOrFail();

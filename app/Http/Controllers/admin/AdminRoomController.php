@@ -5,15 +5,38 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Room;
-use App\Models\Admin;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AdminRoomController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rooms = Room::all();
+        // ตั้งค่าพารามิเตอร์เริ่มต้น
+        $search = $request->input('search', '');
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'asc');
+
+        // สร้าง query builder
+        $query = Room::query();
+
+        // เพิ่มเงื่อนไขการค้นหาด้วย LIKE operator ถ้ามีการระบุคำค้นหา
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('room_name', 'LIKE', "%{$search}%")
+                    ->orWhere('room_detail', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // จัดการการเรียงลำดับ
+        if ($sortBy) {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        // ดึงข้อมูลทั้งหมดโดยไม่ใช้ pagination
+        $rooms = $query->get();
+
+        // คืนค่าผลลัพธ์ในรูปแบบ JSON โดยไม่มี metadata ของ pagination
         return response()->json($rooms);
     }
 

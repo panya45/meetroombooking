@@ -9,18 +9,6 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -37,6 +25,7 @@ Route::prefix('admin')->group(function () {
  * 🔹 Admin Protected Routes (Require Authentication)
  */
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
@@ -47,6 +36,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/rooms/{id}', [AdminRoomController::class, 'show']);
     Route::put('/rooms/{id}', [AdminRoomController::class, 'update']); // Changed to POST
     Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy']);
+
+    // Route::put('/rooms/{roomId}/maintenance', 'setMaintenance');
 
     Route::get('/bookings', [AdminBookingController::class, 'index']);
     Route::get('/bookings/{id}', [AdminBookingController::class, 'show']);
