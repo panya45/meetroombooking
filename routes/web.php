@@ -109,14 +109,14 @@ Route::get('/user/myBookings/data', [App\Http\Controllers\User\BookingController
 
 Route::get('/user/bookings/{bookId}/reject-reason', [BookingController::class, 'getRejectReason']);
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('bookings', [AdminBookingController::class, 'index'])->name('booking.index');
-    Route::get('bookings/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
-    Route::patch('bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
+// Route::prefix('admin')->name('admin.')->group(function () {
+//     Route::get('bookings', [AdminBookingController::class, 'index'])->name('booking.index');
+//     Route::get('bookings/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
+//     Route::patch('bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
     // Route::get('notifications', [AdminNotificationController::class, 'fetchNotifications']);
     // Route::post('notifications/clear', [AdminNotificationController::class, 'clearNotifications'])->name('notifications.clear');
     // Route::post('notifications/remove', [AdminNotificationController::class, 'removeNotification'])->name('notifications.remove');
-});
+// });
 
 // Route::get('/notifications', [UserNotificationController::class, 'getUserNotifications']);
 // Route::delete('/notifications/{index}', [UserNotificationController::class, 'removeNotification']);

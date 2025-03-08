@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class AdminNotificationController extends Controller
 {
-    // ค่า TTL สำหรับ cache (7 วัน)
+    // ใช้ Cache Key เดียวกับ BookingController
     private $cacheTTL = 60 * 24 * 7;
     private $adminNotificationCacheKey = 'admin_notifications';
 
@@ -18,59 +18,80 @@ class AdminNotificationController extends Controller
      */
     public function getNotifications(Request $request)
     {
-        // ดึง admin_id จาก token
-        $adminId = $request->user()->id;
-        
-        // ดึงการแจ้งเตือนจาก cache
-        $notifications = Cache::get($this->adminNotificationCacheKey . '_' . $adminId, []);
-        
-        // เรียงลำดับตามเวลาล่าสุด
-        $notifications = collect($notifications)->sortByDesc('created_at')->values()->all();
-        
-        // นับจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน
-        $unreadCount = collect($notifications)->where('read', false)->count();
-        
+        // ใช้ Cache Key เดียวกับ BookingController
+        $notifications = Cache::get($this->adminNotificationCacheKey, []);
+
+        // นับจำนวนการแจ้งเตือนทั้งหมด (ไม่มี read status)
+        $notificationCount = count($notifications);
+
         return response()->json([
             'notifications' => $notifications,
-            'unread_count' => $unreadCount
+            'unread_count' => $notificationCount
         ]);
     }
 
     /**
-     * ลบการแจ้งเตือน
+     * ลบการแจ้งเตือนตาม index
      */
-    public function deleteNotification(Request $request, $notificationId)
+    public function deleteNotification(Request $request, $index)
     {
-        $adminId = $request->user()->id;
-        $cacheKey = $this->adminNotificationCacheKey . '_' . $adminId;
-        
-        $notifications = Cache::get($cacheKey, []);
-        
-        // กรองเอาแจ้งเตือนที่ไม่ตรงกับ ID ที่ต้องการลบ
-        $notifications = array_filter($notifications, function($notification) use ($notificationId) {
-            return $notification['id'] != $notificationId;
-        });
-        
+        $notifications = Cache::get($this->adminNotificationCacheKey, []);
+
+        // กรณีที่ $index เป็น integer (index จริงๆ ใน array)
+        if (is_numeric($index) && isset($notifications[$index])) {
+            array_splice($notifications, $index, 1);
+        }
+        // กรณีที่ $index เป็น id (UUID) หรือค่าอื่น
+        else {
+            foreach ($notifications as $i => $notification) {
+                if (isset($notification['id']) && $notification['id'] == $index) {
+                    array_splice($notifications, $i, 1);
+                    break;
+                }
+            }
+        }
+
         // อัพเดท cache
-        Cache::put($cacheKey, array_values($notifications), $this->cacheTTL);
-        
+        Cache::put($this->adminNotificationCacheKey, $notifications, $this->cacheTTL);
+
         return response()->json(['success' => true]);
     }
-    
+
     /**
      * ล้างการแจ้งเตือนทั้งหมด
      */
     public function clearAllNotifications(Request $request)
     {
-        $adminId = $request->user()->id;
-        $cacheKey = $this->adminNotificationCacheKey . '_' . $adminId;
-        
         // ล้าง cache ทั้งหมด
-        Cache::forget($cacheKey);
-        
+        Cache::forget($this->adminNotificationCacheKey);
+
         return response()->json([
             'success' => true,
             'message' => 'ล้างการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว'
         ]);
+    }
+
+    /**
+     * เพิ่มการแจ้งเตือนใหม่ (ไม่มี read status)
+     */
+    public static function addNotification($title, $message, $type = 'booking', $data = [])
+    {
+        // ใช้ Cache Key เดียวกับที่ BookingController ใช้
+        $adminNotifications = Cache::get('admin_notifications', []);
+
+        // สร้างการแจ้งเตือนใหม่ (ไม่มี read status)
+        $adminNotifications[] = [
+            'id' => (string) Str::uuid(),
+            'title' => $title,
+            'message' => $message,
+            'type' => $type,
+            'data' => $data,
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+        ];
+
+        // อัพเดท cache
+        Cache::put('admin_notifications', $adminNotifications, now()->addDays(7));
+
+        return $adminNotifications;
     }
 }

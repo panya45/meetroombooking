@@ -122,13 +122,17 @@ class BookingController extends Controller
             foreach ($booking as $data) {
                 $createdBooking = Booking::create($data);
 
-                // หลังจากสร้างการจอง สำเร็จ ให้ push เข้า admin_notifications
-                $adminNotifications = Cache::get('admin_notifications', []);
-                $adminNotifications[] = [
-                    'message' => "มีการจองใหม่เข้ามา: {$data['booktitle']} วันที่ {$data['book_date']}",
-                    'timestamp' => now()->format('Y-m-d H:i:s'),
-                ];
-                Cache::put('admin_notifications', $adminNotifications, now()->addDays(7));
+                // ใช้ AdminNotificationController::addNotification เพื่อเพิ่มการแจ้งเตือน
+                \App\Http\Controllers\Admin\AdminNotificationController::addNotification(
+                    'มีการจองห้องประชุมใหม่',
+                    "มีการจองใหม่เข้ามา: {$data['booktitle']} วันที่ {$data['book_date']}",
+                    'booking',
+                    [
+                        'booking_id' => $createdBooking->id,
+                        'room_id' => $data['room_id'],
+                        'user_id' => auth()->id()
+                    ]
+                );
             }
             DB::commit();
             return redirect()->route('room.show', ['roomId' => $validated['room_id']])->with('success', 'การจองสำเร็จ!');

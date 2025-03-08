@@ -47,9 +47,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/user/bookings/{bookId}', [BookingController::class, 'show']);
 
     Route::get('/notifications', [AdminNotificationController::class, 'getNotifications']);
-    // Route::get('/notifications', [AdminNotificationController::class, 'getAdminNotifications']);
     Route::delete('/notifications/{id}', [AdminNotificationController::class, 'deleteNotification']);
-    Route::delete('/notifications/claer-all', [AdminNotificationController::class, 'clearAllNotifications']);
+    Route::delete('/notifications/clear-all', [AdminNotificationController::class, 'clearAllNotifications']);
 });
 Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
