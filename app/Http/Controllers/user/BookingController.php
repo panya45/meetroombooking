@@ -149,6 +149,41 @@ class BookingController extends Controller
         return view('user.calendar', compact('room_data'));
     }
 
+    // เพิ่มฟังก์ชันนี้ใน BookingController.php
+    public function getUserBookings()
+    {
+        try {
+            $userId = auth()->id();
+            $bookings = Booking::where('user_id', $userId)
+                ->with('room') // เพื่อดึงข้อมูลห้องด้วย
+                ->get()
+                ->map(function ($booking) {
+                    return [
+                        'book_id' => $booking->book_id,
+                        'booktitle' => $booking->booktitle,
+                        'bookdetail' => $booking->bookdetail,
+                        'book_date' => $booking->book_date,
+                        'room_id' => $booking->room_id,
+                        'room_name' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
+                        'room_pic' => $booking->room->room_pic ?? null,
+                        'username' => $booking->username,
+                        'email' => $booking->email,
+                        'booktel' => $booking->booktel,
+                        'start_time' => $booking->start_time,
+                        'end_time' => $booking->end_time,
+                        'bookstatus' => $booking->bookstatus,
+                        'created_at' => $booking->created_at,
+                        'updated_at' => $booking->updated_at,
+                    ];
+                });
+
+            return response()->json($bookings);
+        } catch (\Exception $e) {
+            Log::error('Error fetching user bookings: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function getEvents(Request $request)
     {
 
@@ -222,5 +257,52 @@ class BookingController extends Controller
         $notifications = Cache::get("user_notifications_{$userId}", []);
 
         return response()->json(['notifications' => $notifications]);
+    }
+
+    public function cancel($booking_id)
+    {
+        try {
+            // ค้นหาการจอง
+            $booking = Booking::findOrFail($booking_id);
+
+            // ตรวจสอบว่าเป็นการจองของผู้ใช้ปัจจุบันและสถานะเป็น pending
+            if ($booking->user_id !== auth()->id() || $booking->bookstatus !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ไม่สามารถยกเลิกการจองนี้ได้'
+                ], 403);
+            }
+
+            // อัปเดตสถานะเป็นยกเลิก
+            $booking->bookstatus = 'cancelled';
+            $booking->save();
+
+            // เพิ่ม Notification สำหรับ Admin
+            $adminNotifications = Cache::get('admin_notifications', []);
+            $adminNotifications[] = [
+                'message' => "การจอง {$booking->booktitle} ถูกยกเลิกโดยผู้ใช้",
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+            ];
+            Cache::put('admin_notifications', $adminNotifications, now()->addDays(7));
+
+            // เพิ่ม Notification สำหรับ User
+            $userNotifications = Cache::get("user_notifications_" . auth()->id(), []);
+            $userNotifications[] = [
+                'message' => "คุณได้ยกเลิกการจอง {$booking->booktitle}",
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+            ];
+            Cache::put("user_notifications_" . auth()->id(), $userNotifications, now()->addDays(7));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ยกเลิกการจองสำเร็จ'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error cancelling booking: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาดในการยกเลิกการจอง'
+            ], 500);
+        }
     }
 }

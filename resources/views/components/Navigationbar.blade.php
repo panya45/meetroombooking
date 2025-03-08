@@ -1,41 +1,6 @@
 <nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center" x-data="{
     sidebarOpen: false,
-    notificationOpen: false,
-    notifications: [],
-    csrfToken: '{{ csrf_token() }}',
-
-    init() {
-        this.fetchNotifications();
-    },
-
-    fetchNotifications() {
-        fetch('/admin/notifications')
-            .then(res => res.json())
-            .then(data => this.notifications = data);
-    },
-
-    clearAllNotifications() {
-        fetch('{{ route('admin.notifications.clear') }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': this.csrfToken
-            }
-        }).then(() => window.location.href = '{{ route('admin.room.booking') }}');
-    },
-
-    removeNotification(index) {
-        fetch('{{ route('admin.notifications.remove') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': this.csrfToken
-            },
-            body: JSON.stringify({ index })
-        }).then(() => window.location.href = '{{ route('admin.room.booking') }}');
-    }
-}"
-    x-init="fetchNotifications()">
-
+}">
     <!-- Hamburger Button -->
     <button @click="sidebarOpen = !sidebarOpen" class="text-gray-700 focus:outline-none">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,40 +18,46 @@
     <div class="flex items-center space-x-4">
 
         <!-- Notification Icon -->
-        <div class="relative">
+        <div x-data="adminNotificationSystem">
+            <!-- Notification Icon -->
             <button @click="notificationOpen = !notificationOpen" class="relative focus:outline-none">
-                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 00-12 0v3a2.032 2.032 0 01-.595 1.595L4 17h5m6 0a3 3 0 11-6 0">
                     </path>
                 </svg>
-                <template x-if="notifications.length > 0">
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1"
-                        x-text="notifications.length"></span>
-                </template>
+                <span x-show="notificationCount > 0"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1"
+                    x-text="notificationCount"></span>
             </button>
 
-            <!-- Notification Dropdown -->
+            <!-- Dropdown Notification List -->
             <div x-show="notificationOpen" @click.away="notificationOpen = false"
-                class="absolute right-0 mt-2 w-64 bg-white border rounded-md shadow-lg overflow-hidden z-50">
+                class="absolute right-0 mt-2 w-80 bg-white border rounded-md shadow-lg overflow-hidden z-50">
                 <div class="px-4 py-2 font-bold text-gray-700 border-b flex justify-between">
-                    <span>การแจ้งเตือน</span>
+                    <span>การแจ้งเตือนสำหรับผู้ดูแลระบบ</span>
                     <button @click="clearAllNotifications()" class="text-xs text-red-600 hover:underline">
                         ล้างทั้งหมด
                     </button>
                 </div>
-                <div class="max-h-64 overflow-y-auto">
+                <div class="max-h-80 overflow-y-auto">
                     <template x-for="(notification, index) in notifications" :key="index">
-                        <div class="px-4 py-2 text-sm text-gray-600 border-b flex justify-between items-center">
-                            <a href="{{ route('admin.room.booking') }}" class="flex-1 hover:underline"
-                                x-text="'[ใหม่] ' + notification.message + ' (' + notification.timestamp + ')'"></a>
-                            <button @click="removeNotification(index)"
-                                class="text-red-500 hover:text-red-700">✖</button>
+                        <div class="px-4 py-2 text-sm border-b" :class="getNotificationClass(notification)">
+                            <div class="flex justify-between items-start">
+                                <a :href="getNotificationUrl(notification)" class="flex-1 hover:underline">
+                                    <span x-text="notification.message"></span><br>
+                                    <span class="text-xs text-gray-400" x-text="notification.timestamp || '-'"></span>
+                                </a>
+                                <button @click="removeNotification(index)" class="text-red-500 hover:text-red-700 ml-2">
+                                    ✖
+                                </button>
+                            </div>
                         </div>
                     </template>
-                    <template x-if="notifications.length === 0">
-                        <div class="px-4 py-2 text-sm text-gray-500">ไม่มีการแจ้งเตือน</div>
-                    </template>
+                    <div x-show="notifications.length === 0" class="px-4 py-2 text-sm text-gray-500">
+                        ไม่มีการแจ้งเตือน
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,43 +87,101 @@
 
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('adminNavigationComponent', () => ({
-            sidebarOpen: false,
+        Alpine.data('adminNotificationSystem', () => ({
             notificationOpen: false,
-            notifications: [],
-            csrfToken: '{{ csrf_token() }}',
+            notifications: @json($notifications ?? []),
 
             init() {
                 this.fetchNotifications();
+
+                // ตั้ง interval เพื่อดึงแจ้งเตือนใหม่ทุก 30 วินาที
+                setInterval(() => {
+                    this.fetchNotifications();
+                }, 30000);
             },
 
             fetchNotifications() {
-                fetch('/admin/notifications')
-                    .then(res => res.json())
-                    .then(data => this.notifications = data);
+                fetch('api/admin/notifications')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.notifications = data;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching notifications:', error);
+                    });
             },
 
-            clearAllNotifications() {
-                fetch('{{ route('admin.notifications.clear') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': this.csrfToken
-                    }
-                }).then(() => location.reload());
+            get notificationCount() {
+                return this.notifications.length;
             },
 
             removeNotification(index) {
-                fetch('{{ route('admin.notifications.remove') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': this.csrfToken
-                    },
-                    body: JSON.stringify({
-                        index
+                axios.delete(`/admin/notifications/${index}`, {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
                     })
-                }).then(() => location.reload());
+                    .then(response => {
+                        this.notifications.splice(index, 1);
+                    })
+                    .catch(error => {
+                        console.error('เกิดข้อผิดพลาดในการลบแจ้งเตือน', error);
+                    });
+            },
+
+            clearAllNotifications() {
+                axios.delete('/admin/notifications', {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        this.notifications = [];
+                    })
+                    .catch(error => {
+                        console.error('เกิดข้อผิดพลาดในการลบแจ้งเตือนทั้งหมด', error);
+                    });
+            },
+
+            getNotificationClass(notification) {
+                // กำหนดสีพื้นหลังตามประเภทของแจ้งเตือน
+                if (notification.type === 'new_booking') {
+                    return 'bg-blue-50';
+                } else if (notification.type === 'booking_cancelled') {
+                    return 'bg-red-50';
+                } else if (notification.type === 'booking_approved') {
+                    return 'bg-green-50';
+                } else if (notification.type === 'booking_rejected') {
+                    return 'bg-yellow-50';
+                } else {
+                    return 'bg-white';
+                }
+            },
+
+            getNotificationUrl(notification) {
+                // สร้าง URL ตามประเภทของแจ้งเตือน
+                if (notification.type === 'new_booking') {
+                    let bookingId = notification.data?.booking_id;
+                    return `/admin/bookings/${bookingId || ''}`;
+                } else if (notification.type === 'booking_cancelled') {
+                    return '/admin/bookings?filter=cancelled';
+                } else if (notification.type === 'booking_approved' || notification.type ===
+                    'booking_rejected') {
+                    return '/admin/bookings';
+                }
+
+                return '/admin/bookings';
             }
         }));
     });
+
+    function logout() {
+        // ทำการ logout
+        document.getElementById('logout-form').submit();
+    }
 </script>
+
+<!-- Logout form (hidden) -->
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    @csrf
+</form>

@@ -1,4 +1,3 @@
-
 <nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center" x-data="navigationComponent()">
 
     <!-- Left Section: Hamburger Button (Sidebar) -->
@@ -20,8 +19,8 @@
     <!-- Right Section: Notifications & Profile -->
     <div class="flex items-center space-x-4">
 
-        <!-- Notification Icon -->
-        <div class="relative">
+        <div x-data="notificationSystem">
+            <!-- Notification Icon -->
             <button @click="notificationOpen = !notificationOpen" class="relative focus:outline-none">
                 <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -29,11 +28,9 @@
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 00-12 0v3a2.032 2.032 0 01-.595 1.595L4 17h5m6 0a3 3 0 11-6 0">
                     </path>
                 </svg>
-                @if (!empty($notifications) && count($notifications) > 0)
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
-                        {{ count($notifications) }}
-                    </span>
-                @endif
+                <span x-show="notificationCount > 0"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1"
+                    x-text="notificationCount"></span>
             </button>
 
             <!-- Dropdown Notification List -->
@@ -46,21 +43,20 @@
                     </button>
                 </div>
                 <div class="max-h-64 overflow-y-auto">
-                    @forelse ($notifications as $index => $notification)
+                    <template x-for="(notification, index) in notifications" :key="index">
                         <div class="px-4 py-2 text-sm text-gray-600 border-b flex justify-between items-center">
-                            <a href="{{ route('user.myBooking') }}@if (!empty($notification['booking_id'])) ?booking_id={{ $notification['booking_id'] }} @endif"
-                                class="flex-1 hover:underline">
-                                {{ $notification['message'] }}<br>
-                                <span class="text-xs text-gray-400">{{ $notification['timestamp'] ?? '-' }}</span>
+                            <a :href="getNotificationUrl(notification)" class="flex-1 hover:underline">
+                                <span x-text="notification.message"></span><br>
+                                <span class="text-xs text-gray-400" x-text="notification.timestamp || '-'"></span>
                             </a>
-                            <button @click="removeNotification({{ $index }})"
-                                class="text-red-500 hover:text-red-700">
+                            <button @click="removeNotification(index)" class="text-red-500 hover:text-red-700">
                                 ✖
                             </button>
                         </div>
-                    @empty
-                        <div class="px-4 py-2 text-sm text-gray-500">ไม่มีการแจ้งเตือน</div>
-                    @endforelse
+                    </template>
+                    <div x-show="notifications.length === 0" class="px-4 py-2 text-sm text-gray-500">
+                        ไม่มีการแจ้งเตือน
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,7 +67,7 @@
                 <img class="w-8 h-8 rounded-full"
                     src="{{ isset($user) && $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avarta-default.png') }}"
                     alt="User Avatar">
-                    
+
                 <div class="ml-2 text-left">
                     <span class="block text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
                     <span class="block text-xs text-gray-500">{{ auth()->user()->email }}</span>
@@ -103,41 +99,45 @@
 </form>
 
 <script>
-    function navigationComponent() {
-        return {
-            sidebarOpen: false,
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('notificationSystem', () => ({
             notificationOpen: false,
-            profileOpen: false,
+            notifications: @json($notifications ?? []),
 
-            clearAllNotifications() {
-                fetch("{{ route('notifications.clear') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    }
-                }).then(() => {
-                    window.location.href = "{{ route('user.myBooking') }}";
-                }).catch(() => {
-                    alert('เกิดข้อผิดพลาดในการล้างการแจ้งเตือน');
-                });
+            get notificationCount() {
+                return this.notifications.length;
             },
 
             removeNotification(index) {
-                fetch("{{ route('notifications.remove') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({
-                        index
+                axios.delete(`/api/user/notifications/${index}`)
+                    .then(response => {
+                        this.notifications.splice(index, 1);
                     })
-                }).then(() => {
-                    window.location.href = "{{ route('user.myBooking') }}";
-                }).catch(() => {
-                    alert('เกิดข้อผิดพลาดในการลบการแจ้งเตือน');
-                });
+                    .catch(error => {
+                        console.error('เกิดข้อผิดพลาดในการลบแจ้งเตือน', error);
+                    });
+            },
+
+            clearAllNotifications() {
+                axios.delete('/api/user/notifications')
+                    .then(response => {
+                        this.notifications = [];
+                    })
+                    .catch(error => {
+                        console.error('เกิดข้อผิดพลาดในการลบแจ้งเตือนทั้งหมด', error);
+                    });
+            },
+
+            getNotificationUrl(notification) {
+                // สร้าง URL ตามประเภทของแจ้งเตือน
+                if (notification.type === 'booking_approved' ||
+                    notification.type === 'booking_rejected') {
+                    let bookingId = notification.data?.booking_id;
+                    return `/user/myBooking?booking_id=${bookingId}`;
+                }
+
+                return '/user/myBooking';
             }
-        };
-    }
+        }));
+    });
 </script>

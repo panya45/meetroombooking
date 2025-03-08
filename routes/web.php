@@ -12,6 +12,7 @@ use App\Http\Controllers\RoomDetailController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
+use App\Http\Controllers\user\UserNotificationController;
 
 Route::get('/resources/css/app.css', function () {
     return response()->file(public_path('resources/css/app.css'));
@@ -101,36 +102,45 @@ Route::get('/book_detail', [BookingController::class, 'detail'])->name('booking.
 
 Route::get('/user/myBooking', [BookingController::class, 'myBookings'])->name('user.myBooking');
 
+Route::put('/bookings/{booking_id}/cancel', [BookingController::class, 'cancel']);
+
+// routes/web.php
+Route::get('/user/myBookings/data', [App\Http\Controllers\User\BookingController::class, 'getUserBookings']);
+
 Route::get('/user/bookings/{bookId}/reject-reason', [BookingController::class, 'getRejectReason']);
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('bookings', [AdminBookingController::class, 'index'])->name('booking.index');
     Route::get('bookings/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
     Route::patch('bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
-    Route::get('notifications', [AdminNotificationController::class, 'fetchNotifications']);
-    Route::post('notifications/clear', [AdminNotificationController::class, 'clearNotifications'])->name('notifications.clear');
-    Route::post('notifications/remove', [AdminNotificationController::class, 'removeNotification'])->name('notifications.remove');
+    // Route::get('notifications', [AdminNotificationController::class, 'fetchNotifications']);
+    // Route::post('notifications/clear', [AdminNotificationController::class, 'clearNotifications'])->name('notifications.clear');
+    // Route::post('notifications/remove', [AdminNotificationController::class, 'removeNotification'])->name('notifications.remove');
 });
 
-// ล้างแจ้งเตือนทั้งหมด
-Route::post('/notifications/clear', function () {
-    Cache::forget('user_notifications_' . auth()->id());
-    return response()->json(['message' => 'All notifications cleared']);
-})->name('notifications.clear');
+// Route::get('/notifications', [UserNotificationController::class, 'getUserNotifications']);
+// Route::delete('/notifications/{index}', [UserNotificationController::class, 'removeNotification']);
+// Route::delete('/notifications', [UserNotificationController::class, 'clearAllNotifications']);
+
+// // ล้างแจ้งเตือนทั้งหมด
+// Route::post('/notifications/clear', function () {
+//     Cache::forget('user_notifications_' . auth()->id());
+//     return response()->json(['message' => 'All notifications cleared']);
+// })->name('notifications.clear');
 
 
 // ลบแจ้งเตือนแยกรายการ
-Route::post('/notifications/remove', function (Request $request) {
-    $userId = auth()->id();
-    $index = $request->input('index');
-    $notifications = Cache::get("user_notifications_{$userId}", []);
+// Route::post('/notifications/remove', function (Request $request) {
+//     $userId = auth()->id();
+//     $index = $request->input('index');
+//     $notifications = Cache::get("user_notifications_{$userId}", []);
 
-    if (isset($notifications[$index])) {
-        unset($notifications[$index]); // ลบรายการที่ถูกกดออก
-        Cache::put("user_notifications_{$userId}", array_values($notifications), now()->addDays(7));
-    }
+//     if (isset($notifications[$index])) {
+//         unset($notifications[$index]); // ลบรายการที่ถูกกดออก
+//         Cache::put("user_notifications_{$userId}", array_values($notifications), now()->addDays(7));
+//     }
 
-    return response()->json(['message' => 'Notification removed']);
-})->name('notifications.remove');
+//     return response()->json(['message' => 'Notification removed']);
+// })->name('notifications.remove');
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);

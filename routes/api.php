@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
+use App\Http\Controllers\user\UserNotificationController;
+use App\Http\Controllers\admin\AdminNotificationController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -43,10 +45,28 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/bookings/{id}', [AdminBookingController::class, 'show']);
     Route::patch('/bookings/{bookId}/status', [AdminBookingController::class, 'updateStatus']);
     Route::get('/user/bookings/{bookId}', [BookingController::class, 'show']);
+
+    Route::get('/notifications', [AdminNotificationController::class, 'getNotifications']);
+    // Route::get('/notifications', [AdminNotificationController::class, 'getAdminNotifications']);
+    Route::delete('/notifications/{id}', [AdminNotificationController::class, 'deleteNotification']);
+    Route::delete('/notifications/claer-all', [AdminNotificationController::class, 'clearAllNotifications']);
 });
 Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
 Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
+
+// routes/api.php
+Route::middleware('auth:sanctum')->group(function () {
+    // Notification Routes
+
+});
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     // Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
+//     Route::get('/user/bookings/{booking}/reject-reason', [BookingController::class, 'getRejectReason']);
+//     Route::post('/user/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
+// });
+// Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
 
 // Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 // Route::middleware(['auth:sanctum'])->group(function() {
