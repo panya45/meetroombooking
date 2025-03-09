@@ -14,8 +14,14 @@ class RoomUserController extends Controller
         $room_data = DB::table('room')->get();
         return view('user.room_list', compact('room_data'));
     }
+    // API สำหรับดึงข้อมูลห้องประชุม
+    public function getRooms()
+    {
+        $room_data = DB::table('room')->get();
+        return response()->json($room_data);  // ส่งข้อมูลในรูปแบบ JSON
+    }
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except('index'); // อนุญาตให้เข้าถึง API นี้โดยไม่ต้อง login
     }
 }

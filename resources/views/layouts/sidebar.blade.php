@@ -14,28 +14,39 @@
     </button>
     <nav class="mt-6">
         <a href="{{ route('dashboard') }}"
-            class="block py-3 px-6 rounded-lg text-blue-600 font-medium flex items-center">
-            <span class="mr-2">⚙️</span> Dashboard
+            class="py-3 px-6 rounded-lg text-black hover:bg-gray-200 font-medium flex items-center">
+            <span class="mr-4">⚙️</span> Dashboard
         </a>
-        <ul class="mt-4">
+        <ul class="mt-6">
             <li>
-                <a href="{{ route('rooms.index') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    ห้องประชุม
+                <a href="{{ route('rooms.index') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/meeting-room.png') }}" class="w-6 h-6" alt="">
+                    <span>ห้องประชุม</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('user.myBooking') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    รายการจองของฉัน
+                <a href="{{ route('user.myBooking') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/menu.png') }}" class="w-6 h-6" alt="">
+                    <span>รายการจองของฉัน</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('profile.edit') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    โปรไฟล์ของฉัน
+                <a href="{{ route('profile.edit') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/edit-pro.png') }}" class="w-6 h-6" alt="">
+                    <span>โปรไฟล์ของฉัน</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('calendar') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    ปฏิทินการจองห้องประชุม
+                <a href="{{ route('calendar') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/caledar.png') }}" class="w-6 h-6" alt="">
+                    <span>ปฏิทินการจองห้องประชุม</span>
                 </a>
             </li>
             <!-- Logout Form (hidden) -->

@@ -142,8 +142,6 @@
     }
 
 
-
-
     .my-event-class {
         background: linear-gradient(135deg, #ff7eb3, #ff758c);
         border-radius: 10px;
@@ -262,7 +260,8 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 var calendarEl = document.getElementById('calendar');
-
+                // สมมติว่าคุณมีตัวแปรไอดีของผู้ใช้ปัจจุบัน (ต้องดึงค่าจาก Blade หรือ API)
+                var currentUserId = {{ auth()->id() }}; // ถ้าใช้ Blade
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     locale: 'th', // ใช้ภาษาไทย
                     initialView: 'dayGridMonth', // เริ่มต้นแสดงเป็นเดือน
@@ -281,6 +280,7 @@
                         week: 'สัปดาห์',
                         day: 'วัน',
                     },
+
                     eventClick: function(info) {
                         // ฟังก์ชันจัดการการคลิก event
                         var modal = new bootstrap.Modal(document.getElementById('eventModal'));

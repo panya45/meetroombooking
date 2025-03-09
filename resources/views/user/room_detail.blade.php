@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- <meta name="auth-token" content="{{ auth()->user()->createToken('MeetingRoomApp')->plainTextToken }}"> --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
@@ -10,13 +12,11 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-
 </head>
-
 <body class="bg-gray-100" x-data="{ sidebarOpen: false }">
     @extends('layouts.app')
+    @include('layouts.navigation')
     @section('content')
-        @include('layouts.navigation')
         <div class="container mx-auto my-8 px-4 pt-32">
             <div class="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col md:flex-row">
                 <!-- Section รูปภาพห้อง -->
@@ -54,8 +54,6 @@
                                 class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
                                 จองห้องเลย
                             </button>
-
-
                             <!-- Modal Backdrop and Content -->
                             <div x-show="openBookingModal" x-cloak
                                 class="fixed inset-0 flex items-center justify-center z-50">
@@ -63,10 +61,9 @@
                                 <div class="fixed inset-0 bg-black opacity-50" @click="openBookingModal = false"></div>
 
                                 <!-- Modal Content -->
-                                <div class="bg-white p-6 rounded-lg shadow-lg relative z-10 w-11/12 md:w-1/2">
+                                <div class="bg-white p-6 rounded-lg shadow-lg relative z-10 w-8/12 md:w-2/2">
                                     <h2 class="text-xl font-bold mb-4">แบบฟอร์มจองห้องประชุม</h2>
                                     <!-- ฟอร์มการจองห้อง -->
-
                                     @if ($errors->any())
                                         <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
                                             <ul>
@@ -131,6 +128,15 @@
                                             @foreach (old('book_date', [date('Y-m-d')]) as $index => $book_date)
                                                 <div class="booking-slot mb-4 border p-4 rounded">
                                                     <div class="mb-2">
+                                                        <div class="flex items-start pb-2">
+                                                            <p class="text-gray-700">
+                                                                เวลาที่ระบบได้เปิดให้ทำการจองได้นั้นคือตั้งแต่เวลา </p>
+                                                            <p class="font-bold text-green-600 pl-2">07:00 AM - 18:00 PM
+                                                            </p>
+                                                            <p class="text-gray-700 pl-2">
+                                                                ตามเวลาทำการและเวลาเปิดให้บริการองค์กรของเรา
+                                                                จึงเรียนมาให้ทราบ</p>
+                                                        </div>
                                                         <label for="book_date"
                                                             class="block text-sm font-bold mb-1">วันที่จอง</label>
                                                         <input type="date" name="book_date[]"
@@ -165,43 +171,13 @@
                                         <div class="mb-4">
                                             <label for="bookstatus"
                                                 class="block text-sm font-bold mb-1">สถานะการจอง</label>
-                                            @if (isset($booking) && count($booking) > 0)
-                                                @foreach ($booking as $singleBooking)
-                                                    <!-- แสดงค่าใน input ตามสถานะ -->
-                                                    <input type="text" name="bookstatus" id="bookstatus"
-                                                        value="{{ $singleBooking->bookstatus === 'Pending'
-                                                            ? 'กำลังรอการอนุมัติ'
-                                                            : ($singleBooking->bookstatus === 'booked'
-                                                                ? 'จองสำเร็จ'
-                                                                : ($singleBooking->bookstatus === 'Cancelled'
-                                                                    ? 'ถูกยกเลิกการจอง'
-                                                                    : '')) }}"
-                                                        class="w-full border border-gray-300 rounded p-2" readonly>
 
-                                                    <!-- สถานะการจอง -->
-                                                    @if ($singleBooking->bookstatus === 'Pending')
-                                                        <span
-                                                            class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            กำลังรอการอนุมัติ
-                                                        </span>
-                                                    @elseif ($singleBooking->bookstatus === 'booked')
-                                                        <span
-                                                            class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            จองสำเร็จ
-                                                        </span>
-                                                    @elseif ($singleBooking->bookstatus === 'Cancelled')
-                                                        <span
-                                                            class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            ยกเลิก
-                                                        </span>
-                                                    @endif
-                                                @endforeach
-                                            @else
-                                                <!-- กรณีไม่มีการจอง -->
-                                                <input type="text" name="bookstatus" id="bookstatus"
-                                                    value="กำลังรอการอนุมัติ"
-                                                    class="w-full border border-gray-300 rounded p-2" readonly>
-                                            @endif
+                                            <!-- Placeholder สำหรับแสดงสถานะการจอง -->
+                                            <input type="text" id="bookstatus"
+                                                class="w-full border border-gray-300 rounded p-2" readonly>
+
+                                            <!-- จะแสดงสถานะในรูปแบบ <span> -->
+                                            <div id="booking-status"></div>
                                         </div>
                                         <button type="submit"
                                             class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
@@ -231,7 +207,7 @@
                         <!-- End of Booking Button and Modal -->
                         <div class="mt-6">
                             <a href="{{ route('rooms.index') }}"
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
                                 กลับไปหน้ารายการ
                             </a>
                         </div>
@@ -240,10 +216,103 @@
                     <p>ไม่พบข้อมูลห้อง</p>
                 @endif
             </div>
-        </div>
+            <div id="comments-section" class="bg-gray-50 p-6 rounded-lg shadow-lg">
+                <div class="comments-section">
+                    <h3>ความคิดเห็น</h3>
+                    <div id="comments-list"></div>
 
+                    <!-- ฟอร์มส่งความคิดเห็น -->
+                    <textarea id="comment-text" placeholder="แสดงความคิดเห็น..." class="form-control"></textarea>
+                    <button id="submit-comment-button"
+                        onclick="submitComment({{ $room->id }})">ส่งความคิดเห็น</button>
+                </div>
+            </div>
+        </div>
     @endsection
 </body>
+@if (session('success'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                title: 'สำเร็จ!',
+                text: '{{ session('success') }}',
+                icon: 'success',
+                confirmButtonText: 'ตกลง'
+            });
+        });
+    </script>
+@endif
+
+@if (session('error'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonText: 'ตกลง'
+            });
+        });
+    </script>
+@endif
+
+@if ($errors->any())
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                title: 'พบข้อผิดพลาด!',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                icon: 'error',
+                confirmButtonText: 'ตกลง'
+            });
+        });
+    </script>
+@endif
+
+
+<script>
+    // ดึงข้อมูลสถานะการจองจาก API
+    fetch(`/api/booking-status/${roomId}`) // ปรับ URL ให้ตรงกับ API ของคุณ
+        .then(response => response.json())
+        .then(data => {
+            const bookstatusElement = document.getElementById('bookstatus');
+            const bookingStatusDiv = document.getElementById('booking-status');
+
+            if (data && data.bookstatus) {
+                // แสดงสถานะใน input
+                bookstatusElement.value = data.bookstatus === 'Pending' ?
+                    'กำลังรอการอนุมัติ' :
+                    (data.bookstatus === 'booked' ?
+                        'จองสำเร็จ' :
+                        (data.bookstatus === 'Cancelled' ? 'ถูกยกเลิกการจอง' : ''));
+
+                // แสดงสถานะใน <span> ข้างๆ
+                let statusSpan = '';
+                if (data.bookstatus === 'Pending') {
+                    statusSpan =
+                        '<span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">กำลังรอการอนุมัติ</span>';
+                } else if (data.bookstatus === 'booked') {
+                    statusSpan =
+                        '<span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">จองสำเร็จ</span>';
+                } else if (data.bookstatus === 'Cancelled') {
+                    statusSpan =
+                        '<span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">ยกเลิก</span>';
+                }
+
+                // แสดงสถานะใน div
+                bookingStatusDiv.innerHTML = statusSpan;
+            } else {
+                // กรณีไม่มีข้อมูล
+                bookstatusElement.value = "กำลังรอการอนุมัติ";
+                bookingStatusDiv.innerHTML =
+                    "<span class='inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold'>ไม่พบข้อมูล</span>";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching booking status:', error);
+        });
+</script>
+
 <script>
     // Check if there is a success session and show modal if necessary
     @if (session('success'))
@@ -263,22 +332,7 @@
         window.location.href = '{{ route('booking.show', ['booking_id' => $room->id]) }}';
     });
 </script>
-<script>
-    // Check if $booking is set in the Blade view before using it
-    @if (isset($booking) && $booking)
-        document.getElementById('view-details-btn')?.addEventListener('click', function() {
-            // Now you can safely access $booking->id
-            window.location.href =
-                '{{ route('booking.show', ['roomId' => $room->id, 'book_id' => $booking->id]) }}';
-        });
-    @else
-        // Handle the case where booking is not available
-        document.getElementById('view-details-btn')?.addEventListener('click', function() {
-            alert('Booking not found');
-        });
-    @endif
-</script>
-<script>
+{{-- <script>
     document.getElementById('booking-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form from submitting normally
 
@@ -313,7 +367,7 @@
                 alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
             });
     });
-</script>
+</script> --}}
 <script>
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault(); // ป้องกันการ Submit ปกติ
@@ -329,7 +383,10 @@
                 method: "POST",
                 body: formData,
                 headers: {
-                    "X-CSRF-TOKEN": document.querySelector('input[name=_token]').value
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content'),
+                    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+                    'Content-Type': 'application/json'
                 }
             })
             .then(response => response.text()) // อ่านเป็นข้อความก่อน
@@ -390,34 +447,230 @@
             e.target.closest('.booking-slot').remove();
         }
     });
-    // เมื่อฟอร์มถูกส่งและทำการประมวลผลเสร็จ
-    document.querySelector('form').addEventListener('submit', function(event) {
-        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+    // document.querySelector('form').addEventListener('submit', function(event) {
+    //     event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
 
-        // ส่งข้อมูลการจองไปที่เซิร์ฟเวอร์ด้วย axios หรือ fetch
-        axios.post(this.action, new FormData(this))
+    //     // ส่งข้อมูลการจองไปที่เซิร์ฟเวอร์ด้วย axios หรือ fetch
+    //     axios.post(this.action, new FormData(this))
+    //         .then(response => {
+    //             // เช็คว่า API ส่งกลับข้อมูลที่สำเร็จหรือไม่
+    //             if (response.data.success) {
+    //                 // ถ้าส่งข้อมูลสำเร็จ
+    //                 Swal.fire({
+    //                     title: 'สำเร็จ!',
+    //                     text: 'การจองห้องสำเร็จ',
+    //                     icon: 'success',
+    //                     confirmButtonText: 'ตกลง'
+    //                 }).then(() => {
+    //                     // รีเฟรชหน้าหรือไปยังหน้าที่ต้องการ
+    //                     window.location.href = response.data.redirectUrl || '/success';
+    //                 });
+    //             } else {
+    //                 // ถ้าข้อมูลจาก API ไม่สำเร็จ
+    //                 Swal.fire({
+    //                     title: 'เกิดข้อผิดพลาด!',
+    //                     text: response.data.message || 'การจองห้องไม่สำเร็จ',
+    //                     icon: 'error',
+    //                     confirmButtonText: 'ตกลง'
+    //                 });
+    //             }
+    //         })
+    //         .catch(error => {
+    //             // ถ้ามีข้อผิดพลาดเกิดขึ้นในระหว่างส่งข้อมูล
+    //             Swal.fire({
+    //                 title: 'เกิดข้อผิดพลาด!',
+    //                 text: 'การจองห้องไม่สำเร็จ',
+    //                 icon: 'error',
+    //                 confirmButtonText: 'ตกลง'
+    //             });
+    //         });
+    // });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchComments({{ $room->id }});
+    });
+
+    async function fetchComments() {
+        const bookingId = {{ $room->id ?? 'null' }};
+        if (bookingId === null || bookingId === 'null') {
+            console.error("Booking ID is not available.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/comments/${bookingId}/replies`);
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const comments = await response.json();
+            console.log(comments); // ตรวจสอบข้อมูลที่ได้รับจาก API
+
+            // การแสดงผลคอมเมนต์
+            let commentsHTML = '';
+            comments.forEach(comment => {
+                commentsHTML += `
+                <div class="comment">
+                    <p><strong>${comment.user.username}</strong>: ${comment.comment}</p>
+                    <div class="replies">
+                        ${comment.replies.map(reply => `
+                            <div class="reply">
+                                <p><strong>${reply.user.username}</strong>: ${reply.comment}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            });
+
+            document.getElementById("comments-list").innerHTML = commentsHTML;
+
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+            alert("ไม่สามารถโหลดความคิดเห็นได้");
+        }
+    }
+
+
+    function submitComment(bookingId) {
+        const commentText = document.getElementById("comment-text").value;
+        if (!commentText) return alert("กรุณากรอกความคิดเห็น");
+
+        // ตรวจสอบค่า bookingId ว่าถูกต้อง
+        console.log("Booking ID:", bookingId);
+
+        fetch(`/api/room/${bookingId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    comment: commentText
+                })
+            })
             .then(response => {
-                // ถ้าส่งข้อมูลสำเร็จ
-                Swal.fire({
-                    title: 'สำเร็จ!',
-                    text: 'การจองห้องสำเร็จ',
-                    icon: 'success',
-                    confirmButtonText: 'ตกลง'
-                }).then(() => {
-                    // รีเฟรชหน้าหรือไปยังหน้าที่ต้องการ
-                    window.location.href = response.data.redirectUrl || '/success';
-                });
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        console.error('Error response:', errorData);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Comment posted:", data);
+                fetchComments(bookingId); // รีเฟรชคอมเมนต์
             })
             .catch(error => {
-                // ถ้ามีข้อผิดพลาดเกิดขึ้น
-                Swal.fire({
-                    title: 'เกิดข้อผิดพลาด!',
-                    text: 'การจองห้องไม่สำเร็จ',
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง'
-                });
+                console.error('Error posting comment:', error);
             });
-    });
+
+    }
+
+
+    function replyToComment(commentId) {
+        const replyText = prompt("กรุณากรอกการตอบกลับ");
+        if (replyText) {
+            fetch(`/comment/${commentId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        reply: replyText
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    fetchComments({{ $room->id }});
+                }).catch(error => console.error('Error posting reply:', error));
+        }
+    }
+
+    function editComment(commentId) {
+        const newComment = prompt("กรุณากรอกความคิดเห็นใหม่");
+        if (newComment) {
+            fetch(`/comment/${commentId}/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        comment: newComment
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    fetchComments({{ $room->id }});
+                }).catch(error => console.error('Error editing comment:', error));
+        }
+    }
+
+    function deleteComment(commentId) {
+        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบความคิดเห็นนี้?")) {
+            fetch(`/comment/${commentId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    fetchComments({{ $room->id }});
+                }).catch(error => console.error('Error deleting comment:', error));
+        }
+    }
 </script>
+<style>
+    #comments-list {
+        max-height: 350px;
+        /* กำหนดความสูงสูงสุดของคอมเมนต์ */
+        overflow-y: auto;
+        /* ให้คอมเมนต์เลื่อนลงได้ */
+    }
+
+    /* กำหนดความสูงของกล่องคอมเมนต์ */
+    <style>.comment-container {
+        background-color: #f9fafb;
+    }
+
+    .reply-container {
+        margin-left: 2rem;
+        background-color: #f1f5f9;
+    }
+
+    .action-buttons button {
+        padding: 5px 10px;
+        margin-right: 5px;
+        font-size: 14px;
+    }
+
+    .btn-reply {
+        border: none;
+        background-color: transparent;
+        color: #3b82f6;
+    }
+
+    .btn-delete {
+        background-color: transparent;
+        color: red;
+    }
+
+    .btn-edit {
+        background-color: transparent;
+        color: #3b82f6;
+    }
+
+    .btn-save,
+    .btn-cancel {
+        padding: 6px 12px;
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 4px;
+    }
+</style>
 
 </html>
