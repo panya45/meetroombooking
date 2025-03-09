@@ -12,6 +12,8 @@ use App\Http\Controllers\RoomDetailController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
 
 use App\Http\Controllers\User\UserDashboardController;
 
@@ -56,7 +58,7 @@ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleCallback']);
 
 Route::get('/rooms', [RoomUserController::class, 'index'])->middleware('auth')->name('rooms.index');
-
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 require __DIR__ . '/auth.php';
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
@@ -160,3 +162,11 @@ Route::get('/dashboard', [BookingController::class, 'showDashboard'])->name('das
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);
 Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
+
+Route::post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('comments/{commentId}/replies', [CommentController::class, 'getReplies']);
+// ใน routes/web.php

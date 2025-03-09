@@ -9,6 +9,9 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\user\UserDashboardController;
+use App\Http\Controllers\user\RoomUserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
 
 
 /*
@@ -84,4 +87,13 @@ Route::middleware('auth:api')->group(function () {
 
 // ตั้งค่า route สำหรับการดึงข้อมูลห้องประชุมที่พร้อมจอง
 Route::get('/rooms/available', [BookingController::class, 'showAvailableRooms']);
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 
+Route::middleware('auth')->post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getReplies']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getCommentsWithReplies']);
+Route::get('/search-rooms', [RoomUserController::class, 'searchRooms']);

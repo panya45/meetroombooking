@@ -221,6 +221,7 @@ class BookingController extends Controller
                     'className' => 'event-color-' . ($booking->room_id % 5),
                     'extendedProps' => [
                         'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
+                        'user_id' => $booking->user_id, // ตรวจสอบว่าค่าของ user_id ถูกส่งไปหรือไม่
                         'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
                         'email' => $booking->email ?? 'ไม่ระบุอีเมล',
                         'bookdetail' => $booking->bookdetail ?? '',
