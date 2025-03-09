@@ -8,7 +8,12 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
+use App\Http\Controllers\user\UserNotificationController;
+use App\Http\Controllers\admin\AdminNotificationController;
 use App\Http\Controllers\user\UserDashboardController;
+use App\Http\Controllers\user\RoomUserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
 
 
 /*
@@ -21,8 +26,6 @@ use App\Http\Controllers\user\UserDashboardController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-use App\Http\Controllers\user\UserNotificationController;
-use App\Http\Controllers\admin\AdminNotificationController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -100,23 +103,13 @@ Route::middleware('auth:api')->group(function () {
 
 // ตั้งค่า route สำหรับการดึงข้อมูลห้องประชุมที่พร้อมจอง
 Route::get('/rooms/available', [BookingController::class, 'showAvailableRooms']);
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 
-
-// routes/api.php
-Route::middleware('auth:sanctum')->group(function () {
-    // Notification Routes
-
-});
-
-// Route::middleware('auth:sanctum')->group(function () {
-//     // Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
-//     Route::get('/user/bookings/{booking}/reject-reason', [BookingController::class, 'getRejectReason']);
-//     Route::post('/user/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
-// });
-// Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
-
-// Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
-// Route::middleware(['auth:sanctum'])->group(function() {
-//     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('api.booking.show');
-//     Route::post('/booking', [BookingController::class, 'store'])->name('api.booking.store');
-// });
+Route::middleware('auth')->post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getReplies']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getCommentsWithReplies']);
+Route::get('/search-rooms', [RoomUserController::class, 'searchRooms']);

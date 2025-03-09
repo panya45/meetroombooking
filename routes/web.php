@@ -13,6 +13,9 @@ use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
 
+use App\Http\Controllers\user\UserNotificationController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
 use App\Http\Controllers\User\UserDashboardController;
 
 /*
@@ -25,7 +28,7 @@ use App\Http\Controllers\User\UserDashboardController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-use App\Http\Controllers\user\UserNotificationController;
+
 
 Route::get('/resources/css/app.css', function () {
     return response()->file(public_path('resources/css/app.css'));
@@ -57,7 +60,7 @@ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleCallback']);
 
 Route::get('/rooms', [RoomUserController::class, 'index'])->middleware('auth')->name('rooms.index');
-
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 require __DIR__ . '/auth.php';
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
@@ -159,6 +162,19 @@ Route::get('/user/bookings/{bookId}/reject-reason', [BookingController::class, '
 
 //     return response()->json(['message' => 'Notification removed']);
 // })->name('notifications.remove');
+
+Route::post('/notifications/remove', function (Request $request) {
+    $userId = auth()->id();
+    $index = $request->input('index');
+    $notifications = Cache::get("user_notifications_{$userId}", []);
+
+    if (isset($notifications[$index])) {
+        unset($notifications[$index]); // ลบรายการที่ถูกกดออก
+        Cache::put("user_notifications_{$userId}", array_values($notifications), now()->addDays(7));
+    }
+
+    return response()->json(['message' => 'Notification removed']);
+})->name('notifications.remove');
 Route::middleware('auth')->group(function () {
     // Route สำหรับหน้า Dashboard
     Route::get('/dashboard', function () {
@@ -172,3 +188,11 @@ Route::get('/dashboard', [BookingController::class, 'showDashboard'])->name('das
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);
 Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
+
+Route::post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('comments/{commentId}/replies', [CommentController::class, 'getReplies']);
+// ใน routes/web.php

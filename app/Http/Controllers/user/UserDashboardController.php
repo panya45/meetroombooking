@@ -32,7 +32,6 @@ class UserDashboardController extends Controller
             'rooms' => $rooms,
             'notifications' => $notifications,
         ]);
-
     }
     public function getUserDashboardById($user_id)
     {
@@ -56,33 +55,32 @@ class UserDashboardController extends Controller
     }
     public function getUserBookings()
     {
+        $userId = Auth::id();  // ไอดีของผู้ใช้ที่ล็อกอิน
+        $bookings = Booking::where('user_id', $userId)->get(); // ดึงการจองของผู้ใช้
 
-        $userId = Auth::id();
-        $bookings = Booking::where('user_id', $userId)->get();
+        $events = $bookings->map(function ($booking) use ($userId) {
+            $eventColor = ($booking->user_id == $userId) ? '#007bff' : '#ffcc00'; // ฟ้าสำหรับเจ้าของ, เหลืองสำหรับคนอื่น
 
-        $events = $bookings->map(function ($booking) {
             return [
                 'id' => $booking->id,
                 'title' => $booking->booktitle,
                 'start' => Carbon::parse("{$booking->book_date} {$booking->start_time}")->toIso8601String(),
                 'end' => Carbon::parse("{$booking->book_date} {$booking->end_time}")->toIso8601String(),
-                'className' => 'event-color-' . ($booking->room_id % 5),
                 'extendedProps' => [
+                    'user_id' => $booking->user_id, // ส่ง user_id มาด้วย
                     'room' => $booking->room->room_name ?? 'ไม่ระบุห้อง',
                     'username' => $booking->user->username ?? 'ไม่ระบุชื่อผู้จอง',
-                    'email' => $booking->email ?? 'ไม่ระบุอีเมล',
-                    'bookdetail' => $booking->bookdetail ?? '',
-                    'booktel' => $booking->booktel ?? '',
                     'book_date' => $booking->book_date ?? '',
                     'start_time' => $booking->start_time ?? '',
                     'end_time' => $booking->end_time ?? '',
                     'bookstatus' => $booking->bookstatus ?? '',
-                ]
+                ],
             ];
         });
 
         return response()->json($events);
     }
+
 
     public function getRejectReason($booking_id)
     {

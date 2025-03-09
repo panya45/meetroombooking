@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 use App\Models\Admin;
+use App\Models\Comments;
+use App\Policies\CommentsPolicy;
 use App\Policies\AdminPolicy;
 
 // use Illuminate\Support\Facades\Gate;
@@ -23,6 +25,8 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+
+
     }
 }
