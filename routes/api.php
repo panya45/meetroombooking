@@ -36,8 +36,9 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/rooms', [AdminRoomController::class, 'index']);
     Route::post('/rooms', [AdminRoomController::class, 'store']);
     Route::get('/rooms/{id}', [AdminRoomController::class, 'show']);
-    Route::put('/rooms/{id}', [AdminRoomController::class, 'update']); // Changed to POST
+    Route::PUT('/rooms/{id}', [AdminRoomController::class, 'update']);
     Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy']);
+    Route::post('/rooms/{id}', [AdminRoomController::class, 'update']); 
 
     // Route::put('/rooms/{roomId}/maintenance', 'setMaintenance');
     

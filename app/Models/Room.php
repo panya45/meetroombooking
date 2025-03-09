@@ -18,11 +18,14 @@ class Room extends Model
         'room_pic'
     ];
 
+    public function images()
+    {
+        return $this->hasMany(RoomImage::class, 'room_id');
+    }
+
     // ความสัมพันธ์กับ Booking (ห้องหนึ่งห้องสามารถมีการจองหลายครั้ง)
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
-
-    
 }
