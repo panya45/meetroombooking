@@ -48,11 +48,11 @@
                 <div class="max-h-64 overflow-y-auto">
                     <template x-for="(notification, index) in notifications" :key="index">
                         <div class="px-4 py-2 text-sm text-gray-600 border-b flex justify-between items-center">
-                            <a href="{{ $notification['booking_id'] ? route('booking.show', ['booking_id' => $notification['booking_id']]) : '#' }}"
+                            {{-- <a href="{{ $notification['booking_id'] ? route('booking.show', ['booking_id' => $notification['booking_id']]) : '#' }}"
                                 class="flex-1 hover:underline">
                                 {{ $notification['message'] }}<br>
                                 <span class="text-xs text-gray-400">{{ $notification['timestamp'] ?? '-' }}</span>
-                            </a>
+                            </a> --}}
                             <button @click="removeNotification(index)" class="text-red-500 hover:text-red-700">
                                 ✖
                             </button>
