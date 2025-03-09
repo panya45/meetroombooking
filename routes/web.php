@@ -13,6 +13,20 @@ use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\admin\AdminNotificationController;
 use App\Http\Controllers\user\UserNotificationController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
+use App\Http\Controllers\User\UserDashboardController;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
 Route::get('/resources/css/app.css', function () {
     return response()->file(public_path('resources/css/app.css'));
@@ -22,8 +36,16 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
+
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified'])->name('user.dashboard');
+// Route::prefix('admin/room')->middleware('auth')->group(function () {
+//     Route::post('/', [AdminRoomController::class, 'create']);
+//     Route::get('/', [AdminRoomController::class, 'index']);
+//     Route::get('{id}', [AdminRoomController::class, 'show']);
+//     Route::put('{id}', [AdminRoomController::class, 'update']);
+//     Route::delete('{id}', [AdminRoomController::class, 'destroy']);
+// });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,7 +58,7 @@ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleCallback']);
 
 Route::get('/rooms', [RoomUserController::class, 'index'])->middleware('auth')->name('rooms.index');
-
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 require __DIR__ . '/auth.php';
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
@@ -80,8 +102,6 @@ Route::get('room_detail/{id}', [RoomDetailController::class, 'show'])->name('roo
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show']);
-    Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
-
     // Route::get('/booking/{roomId}/{book_id}', [BookingController::class, 'show'])->name('booking.show');
     // แสดงฟอร์มการจอง
     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
@@ -90,15 +110,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 });
 
-// แสดงหน้าปฏิทิน
+Route::get('/user/booking/{booking_id}', [BookingController::class, 'show'])->name('booking.show');
+Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
+Route::get('/user/my-bookings', [BookingController::class, 'myBookings'])->middleware('auth')->name('myBookings');
+Route::get('/get-reject-reason/{booking_id}', [BookingController::class, 'getRejectReason']);
+Route::get('/get-notifications', [BookingController::class, 'getNotifications']);
 
-// API สำหรับดึงข้อมูลการจอง
-Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
-
-Route::get('/booking/events', [BookingController::class, 'getEvents'])->name('booking.events');
-
-Route::get('/book_detail', [BookingController::class, 'detail'])->name('booking.detail');
 
 Route::get('/user/myBooking', [BookingController::class, 'myBookings'])->name('user.myBooking');
 
@@ -130,17 +148,35 @@ Route::get('/user/bookings/{bookId}/reject-reason', [BookingController::class, '
 
 
 // ลบแจ้งเตือนแยกรายการ
-// Route::post('/notifications/remove', function (Request $request) {
-//     $userId = auth()->id();
-//     $index = $request->input('index');
-//     $notifications = Cache::get("user_notifications_{$userId}", []);
 
-//     if (isset($notifications[$index])) {
-//         unset($notifications[$index]); // ลบรายการที่ถูกกดออก
-//         Cache::put("user_notifications_{$userId}", array_values($notifications), now()->addDays(7));
-//     }
+Route::post('/notifications/remove', function (Request $request) {
+    $userId = auth()->id();
+    $index = $request->input('index');
+    $notifications = Cache::get("user_notifications_{$userId}", []);
 
-//     return response()->json(['message' => 'Notification removed']);
-// })->name('notifications.remove');
+    if (isset($notifications[$index])) {
+        unset($notifications[$index]); // ลบรายการที่ถูกกดออก
+        Cache::put("user_notifications_{$userId}", array_values($notifications), now()->addDays(7));
+    }
+
+    return response()->json(['message' => 'Notification removed']);
+})->name('notifications.remove');
+Route::middleware('auth')->group(function () {
+    // Route สำหรับหน้า Dashboard
+    Route::get('/dashboard', function () {
+        return view('user.dashboard');
+    })->middleware(['auth', 'verified'])->name('user.dashboard');
+});
+
+Route::get('/dashboard', [BookingController::class, 'showDashboard'])->name('dashboard');
 
 Route::get('/user/bookings/{booking_id}', [BookingController::class, 'show']);
+Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
+
+Route::post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('comments/{commentId}/replies', [CommentController::class, 'getReplies']);
+// ใน routes/web.php

@@ -13,7 +13,7 @@
 <body class="bg-gray-100">
 
     <div class="flex justify-center items-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full sm:w-96">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg sm:w-[40rem] md:w-[48rem]">
             <div class="flex justify-center">
                 <img src="images/logo-meetroom-booking-Photoroom.png"
                     class="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 mx-auto">
@@ -46,20 +46,29 @@
                         placeholder="********" required
                         class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
                 </div>
+                <div class="flex flex-col items-center justify-center gap-4 p-6">
+                    <div class="flex items-center gap-2 w-full">
+                        <button type="submit"
+                            class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+                            สมัครสมาชิก
+                        </button>
+                    </div>
 
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 p-6">
-                    <a href="{{ url('login') }}"
-                        class="w-full sm:w-1/2 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg
-                           hover:bg-gray-500 text-center">
-                        Login
-                    </a>
-                    <button type="submit"
-                        class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
-                        Register
-                    </button>
+                    <!-- ข้อความและลิงก์เข้าสู่ระบบ -->
+                    <div class="w-full text-center ">
+                        <p class="text-gray-600">กรณีถ้าคุณมีบัญชีผู้ใช้อยู่แล้วให้คลิกที่</p>
+                        <a href="{{ url('login') }}"
+                            class="w-full sm:w-1/2 py-2 px-4 font-semibold rounded-lg text-red-600">
+                            เข้าสู่ระบบ
+                        </a>
+                    </div>
                 </div>
+
             </form>
-            <div class="mt-6">
+            <div class="flex flex-col items-center justify-center">
+                <p class="text-gray-600">หรือถ้าต้องเข้าสู่ระบบหรือสมัครสมาชิกผ่านGoogleให้คลิกที่</p>
+            </div>
+            <div class="">
                 <a href="{{ url('auth/google') }}"
                     class="w-full py-2 px-4 text-black font-semibold rounded-lg flex items-center justify-center gap-4
                            border-2 border-solid transition delay-100 duration-250 ease-in-out hover:bg-gray-300 shadow-lg">

@@ -1,4 +1,3 @@
-
 <aside x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300 transform"
     x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
     x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
@@ -15,47 +14,50 @@
     </button>
     <nav class="mt-6">
         <a href="{{ route('dashboard') }}"
-            class="block py-3 px-6 rounded-lg text-blue-600 bg-blue-100 font-medium flex items-center">
-            <span class="mr-2">⚙️</span> Dashboard
+            class="py-3 px-6 rounded-lg text-black hover:bg-gray-200 font-medium flex items-center">
+            <span class="mr-4">⚙️</span> Dashboard
         </a>
-        <ul class="mt-4">
+        <ul class="mt-6">
             <li>
-                <a href="{{ route('rooms.index') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    ห้องประชุม
+                <a href="{{ route('rooms.index') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/meeting-room.png') }}" class="w-6 h-6" alt="">
+                    <span>ห้องประชุม</span>
                 </a>
             </li>
+
             <li>
                 <a href="{{ route('user.myBooking') }}"
-                    class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    รายการจองของฉัน
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/menu.png') }}" class="w-6 h-6" alt="">
+                    <span>รายการจองของฉัน</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('profile.edit') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    โปรไฟล์ของฉัน
+                <a href="{{ route('profile.edit') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/edit-pro.png') }}" class="w-6 h-6" alt="">
+                    <span>โปรไฟล์ของฉัน</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('calendar') }}" class="block py-3 px-6 hover:bg-gray-200 rounded-lg">
-                    ปฏิทินการจองห้องประชุม
+                <a href="{{ route('calendar') }}"
+                    class="flex items-center gap-4 py-3 px-6 w-full block hover:bg-gray-200 rounded-lg">
+                    <img src="{{ asset('images/caledar.png') }}" class="w-6 h-6" alt="">
+                    <span>ปฏิทินการจองห้องประชุม</span>
                 </a>
             </li>
 
-
-        <div class="absolute bottom-6 w-full">
-            <a href="{{ route('profile.edit') }}" class="block py-3 px-6 hover:bg-gray-100">การตั้งค่า</a>
-            <button onclick="document.getElementById('logout-form').submit()"
-                class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100">ออกจากระบบ</button>
-        </div>
-    </aside>
-
-
-    <!-- Logout Form (hidden) -->
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-        @csrf
-    </form>
-    <!-- เนื้อหาหลัก -->
-    <div x-bind:class="sidebarOpen ? 'ml-64' : 'ml-0'" class="transition-all duration-300">
-        @yield('content')
-    </div>
-</body>
+            <!-- Logout Form (hidden) -->
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                @csrf
+            </form>
+            <!-- เนื้อหาหลัก -->
+            <div x-bind:class="sidebarOpen ? 'ml-64' : 'ml-0'" class="transition-all duration-300">
+                @yield('content')
+            </div>
+        </ul>
+    </nav>
+</aside>

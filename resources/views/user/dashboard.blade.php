@@ -4,305 +4,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <title>Booking Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/th.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
-    <link rel="dns-prefetch" href="//unpkg.com" />
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
-    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-
-
 </head>
-<style>
-    /* เปลี่ยนสีพื้นหลังและสีตัวอักษรของปุ่มทั้งหมด */
-    .fc-button-primary {
-        background-color: #007bff !important;
-        color: white !important;
-        border: none !important;
-    }
 
-    /* เปลี่ยนสีปุ่มเมื่อ hover */
-    /* .fc-button:hover {
-        background-color: #0056b3 !important;
-    } */
-    /* สีเข้มขึ้นเมื่อ hover */
-    .fc-button {
-        margin: 5px !important;
-        /* เพิ่มระยะห่างระหว่างปุ่ม */
-        padding: 8px 12px !important;
-        /* ขยายพื้นที่ปุ่มให้กดง่ายขึ้น */
-    }
-
-    /* เปลี่ยนสีปุ่มเมื่อถูกกด (active) */
-    .fc-button:active,
-    .fc-button.fc-button-active {
-        background-color: #004080 !important;
-    }
-
-    /* เปลี่ยนสีปุ่ม "วันนี้" */
-    .fc-today-button {
-        background-color: #28a745 !important;
-        /* เขียว */
-    }
-
-    /* เปลี่ยนสีปุ่ม "เดือน", "สัปดาห์", "วัน" */
-    .fc-dayGridMonth-button {
-        /* background-color: #ff6666 !important; */
-        /* สีแดง */
-    }
-
-    .fc-timeGridWeek-button {
-        background-color: #0051ff !important;
-    }
-
-    /* สีเหลือง */
-
-    .fc-timeGridDay-button {
-        background-color: #66ccff !important;
-        /* สีฟ้า */
-    }
-
-    .my-event-class {
-        border-radius: 10px;
-        font-weight: bold;
-    }
-
-    .modal-header {
-        background: #f1f1f1;
-        padding: 15px;
-        border-radius: 12px 12px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        justify-items: center;
-        justify-content: center;
-        align-content: center;
-    }
-
-    /* Modal styles */
-    .modal {
-        display: none;
-        position: fixed;
-        /* z-index: -1; */
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(5px);
-        align-items: center;
-        justify-items: center;
-        justify-content: center;
-        align-content: center;
-    }
-
-    .modal-content {
-        background: linear-gradient(135deg, #ffffff, #f9f9f9);
-        border-radius: 12px;
-        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-        padding: 20px;
-        width: 500px;
-        max-width: 200%;
-        /* ลดความกว้างลงให้ดูพอดี */
-        /* ให้ responsive กับหน้าจอ */
-        text-align: left;
-        position: relative;
-        animation: fadeIn 0.3s ease-in-out;
-    }
-
-    .modal-body {
-        padding: 10px;
-        flex-direction: column;
-        gap: 5px;
-
-        /* เพิ่มระยะห่างของข้อความ */
-    }
-
-    .modal-body p {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1.1rem;
-        padding: 8px;
-        border-radius: 8px;
-        color: #333;
-        flex-wrap: wrap;
-        /* ให้ข้อความขึ้นบรรทัดใหม่หากเกินขนาด */
-        white-space: normal;
-        /* ป้องกันข้อความยาวเกินไป */
-        word-wrap: break-word;
-        /* ให้ขึ้นบรรทัดใหม่หากข้อความยาว */
-    }
-
-    .modal-body strong {
-        font-weight: bold;
-        color: #000000;
-    }
-
-    .modal-body span {
-        font-weight: 500;
-        color: #222;
-    }
-
-    .close-btn {
-        color: #aaa;
-        font-size: 28px;
-        font-weight: bold;
-        position: absolute;
-        top: 10px;
-        right: 20px;
-    }
-
-    .close-btn:hover {
-        color: #ff5e00;
-        cursor: pointer;
-    }
-
-    .close-btn:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    /* Content styling */
-    h4 {
-        font-size: 1.5rem;
-        margin-bottom: 20px;
-    }
-
-
-    strong {
-        font-weight: bold;
-
-    }
-
-
-    /* .my-event-class {
-        background: linear-gradient(135deg, #ff7eb3, #ff758c);
-        border-radius: 10px;
-        font-weight: bold;
-        color: white;
-        padding: 5px;
-    } */
-
-    @keyframes fadeIn {
-        from {
-            transform: translateY(-30px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .modal-footer {
-        width: 50px;
-        background-color: #ff4d4d;
-        color: white;
-        border-radius: 20px;
-        padding: 8px 15px;
-        font-size: 16px;
-        cursor: pointer;
-        display: inline-block;
-        margin-top: 15px;
-        transition: 0.3s;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-body h4 {
-        border-radius: 13px;
-        color: #0d9c00;
-        display: flex;
-        font-size: 20px;
-        justify-content: center;
-        align-items: center;
-        height: 25px;
-        width: auto;
-    }
-
-    .modal-title {
-        font-size: 30px;
-    }
-
-    @media (max-width: 768px) {
-        .modal-content {
-            width: 95%;
-            max-width: 90%;
-            padding: 15px;
-        }
-
-        .modal-title {
-            font-size: 24px;
-        }
-
-        .modal-body p {
-            font-size: 1rem;
-            flex-direction: column;
-            /* ให้ strong และ span อยู่คนละบรรทัด */
-            text-align: left;
-        }
-
-        .modal-body strong {
-            min-width: 100%;
-            display: block;
-        }
-    }
-</style>>
-
-<body>
+<body x-data="{ sidebarOpen: false }" class="bg-gray-100">
     @extends('layouts.app')
     @include('layouts.navigation')
     <div class="pb-32">
+
     </div>
     @section('content')
-        <div class="antialiased sans-serif h-screen">
-            <div class="flex flex-col items-center">
-                <p>🔵 แทบสีฟ้าหมายถึงการจองของตัวผู้ใช้เอง</p>
-                <p>🟡 แทบสีเหลืองหมายถึงส่วนของการจองของผู้ใช้ท่านอื่น</p>
-                <div id="calendar" class="mx-auto px-4 py-2 md:py-24 rounded-lg shadow-md p-6 w-[50%]"></div>
-            </div>
-            <!-- Modal for Event Details -->
-            <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="eventModalLabel">รายละเอียดการจอง</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="title-div">
-                                <h4 id="eventTitle"></h4>
-                            </div>
-                            <p><strong>ห้องประชุม:</strong> <span id="eventRoom"></span></p>
-                            <p><strong>ผู้จอง:</strong> <span id="eventUser"></span></p>
-                            <p><strong>วันที่จอง:</strong> <span id="eventDate"></span></p>
-                            <p><strong>เวลาเริ่ม:</strong> <span id="eventStartTime"></span></p>
-                            <p><strong>เวลาสิ้นสุด:</strong> <span id="eventEndTime"></span></p>
-                            <p><strong>รายละเอียด:</strong> <span id="eventDetails"></span></p>
-                            <p><strong>เบอร์ติดต่อ:</strong> <span id="eventContact"></span></p>
-                            <p><strong>สถานะการจอง:</strong> <span id="eventStatus"></span></p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="" data-bs-dismiss="modal">ปิด</button>
-                        </div>
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-2xl font-bold mb-4">📅 Dashboard - ระบบจองห้องประชุม</h1>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- ปฏิทิน -->
+                <div id="calendar" class="p-4 w-[90%] rounded-xl shadow-md md:col-span-2">
+                    <h2 class="text-lg font-semibold">📆 ปฏิทินการจอง</h2>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md w-full">
+                    <h2 class="text-lg font-semibold pb-2">รายการจองของฉัน</h2>
+                    <div class="flex justify-center items-center pb-10 pt-2 ">
+                        <a href="{{ route('rooms.index') }}"
+                            class="flex items-center justify-center gap-2 py-3 px-6 bg-purple-600 transition delay-100 duration-250 ease-in-out hover:bg-purple-500 shadow-lg  rounded-lg">
+                            <img src="{{ asset('images/next.png') }}" class="w-10 h-10" alt="">
+                            <span class="text-white pr-10">MeetRoomList</span>
+                        </a>
                     </div>
+                    <div class="space-y-2">
+                        <ul class="flex flex-col gap-2 max-h-96 overflow-y-auto">
+                            @forelse ($bookings as $booking)
+                                <li
+                                    class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl shadow-md border-l-4 border-purple-600 hover:bg-gray-100 transition-all">
+                                    <!-- จุดสีม่วง -->
+                                    <div class="w-3 h-3 rounded-full bg-purple-600"></div>
+
+                                    <!-- ข้อมูลการจอง -->
+                                    <div class="flex flex-col flex-grow">
+                                        <span
+                                            class="text-sm font-semibold text-gray-800">{{ $booking->room->room_name ?? 'ไม่ระบุห้อง' }}</span>
+                                        <span class="text-xs text-gray-600">{{ $booking->start_time }} -
+                                            {{ $booking->end_time }}</span>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="text-gray-400">ไม่มีการจอง</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white p-4 rounded-xl shadow-md">
+                    <h2 class="text-lg font-semibold">🏢 รายการจอง</h2>
+                    <ul id="roomList" class="text-sm text-gray-600 mt-2">
+                        @forelse ($bookings as $booking)
+                            <li>🔹 {{ $booking->room->room_name ?? 'ไม่ระบุห้อง' }} - {{ $booking->start_time }} -
+                                {{ $booking->end_time }}</li>
+                        @empty
+                            <li class="text-gray-400">ไม่มีการจอง</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
         </div>
     @endsection
-
     @section('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -311,50 +85,45 @@
                     locale: 'th', // ใช้ภาษาไทย
                     initialView: 'dayGridMonth', // เริ่มต้นแสดงเป็นเดือน
                     eventClassNames: 'my-event-class',
-                    eventTextColor: 'black',
+                    eventTextColor: 'white',
                     eventBackgroundColor: '#FFFF',
                     events: '/get-events',
                     eventDidMount: function(info) {
-                        let eventType = info.event.extendedProps.labelType; // ประเภทของป้าย
                         let eventUserId = info.event.extendedProps.user_id;
                         let currentUserId = @json(auth()->id());
-                        console.log("Event User ID:", eventUserId);
-                        console.log("Current User ID:", currentUserId);
-                        let statusColors = {
-                            "confirmed": "#28a745", // เขียว (อนุมัติ)
-                            "pending": "#ffc107", // เหลือง (รออนุมัติ)
-                            "canceled": "#ff4d4d" // แดง (ยกเลิก)
-                        };
-                        // สีพื้นฐานของป้ายที่มากับระบบ
+
+                        let eventType = info.event.extendedProps.labelType; // ประเภทของป้าย
                         let labelColors = {
-                            "red": "#ff4d4d",
-                            "green": "#28a745",
-                            "blue": "#007bff",
-                            "yellow": "#ffc107",
-                            "gray": "#6c757d"
+                            "red": "#ff4d4d", // สีแดง
+                            "green": "#28a745", // สีเขียว
+                            "blue": "#007bff", // สีฟ้า
+                            "yellow": "#ffc107", // สีเหลือง
+                            "gray": "#6c757d" // สีเทา
                         };
 
-                        let eventStatus = (info.event.extendedProps.bookstatus || "").toLowerCase();
-                        let eventColor = statusColors[eventStatus] || "#dcdcdc"; // ค่าเริ่มต้นเป็นเทา
 
-                        // ตรวจสอบว่าเป็นของผู้ใช้ปัจจุบันหรือไม่
+
+                        // เปลี่ยนสีพื้นหลังของป้ายตามประเภท
+                        let eventColor = labelColors[eventType] || "#dcdcdc";
+
+                        // ถ้าผู้ใช้ที่ล็อกอินเป็นเจ้าของอีเวนต์ จะเปลี่ยนสีให้แตกต่าง
                         if (eventUserId == currentUserId) {
                             eventColor = "#007bff"; // สีฟ้าสำหรับเจ้าของอีเวนต์
-                            info.el.style.color = "black";
+                            info.el.style.color = "white";
                         } else {
                             eventColor = "yellow"; // สีเหลืองสำหรับอีเวนต์ของคนอื่น
                             info.el.style.color = "black";
                         }
 
-                        // กำหนดสีพื้นหลังให้ Event
+                        // ใช้ CSS เปลี่ยนสีพื้นหลังของอีเวนต์
                         info.el.style.backgroundColor = eventColor;
-                        info.el.style.borderRadius = "8px";
+                        info.el.style.borderRadius = "8px"; // ปรับให้เข้ากับสไตล์ใหม่
                         info.el.style.padding = "5px 8px";
                         info.el.style.textAlign = "center";
-                        info.el.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                        info.el.style.transition = "all 0.3s ease";
+                        info.el.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)"; // เพิ่มเงาเล็กน้อย
+                        info.el.style.transition = "all 0.3s ease"; // เพิ่ม transition สำหรับ hover effect
 
-                        // เพิ่ม hover effect
+                        // เพิ่ม hover effect โดยใช้ addEventListener
                         info.el.addEventListener('mouseenter', function() {
                             this.style.transform = "translateY(-2px)";
                             this.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
@@ -365,7 +134,7 @@
                             this.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
                         });
 
-                        // Tooltip
+                        // เพิ่ม Tooltip แสดงรายละเอียด
                         info.el.setAttribute('title', info.event.title + " (" + eventType + ")");
                     },
                     headerToolbar: { // เพิ่มส่วนหัวสำหรับการเลือกมุมมอง (เช่น เดือน, สัปดาห์, วัน)
@@ -374,15 +143,12 @@
                         right: 'dayGridMonth,timeGridWeek,timeGridDay', // ปุ่มมุมมองเดือน, สัปดาห์, วัน
                     },
                     themeSystem: 'bootstrap5',
-                    bootstrapFontAwesome: false, // ปิดการใช้ไอคอนเริ่มต้น
-
                     buttonText: {
                         today: 'วันนี้',
                         month: 'เดือน',
                         week: 'สัปดาห์',
                         day: 'วัน',
                     },
-
                     eventClick: function(info) {
                         // ฟังก์ชันจัดการการคลิก event
                         var modal = new bootstrap.Modal(document.getElementById('eventModal'));

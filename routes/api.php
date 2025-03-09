@@ -10,6 +10,22 @@ use App\Http\Controllers\user\BookingController;
 use App\Http\Controllers\admin\AdminBookingController;
 use App\Http\Controllers\user\UserNotificationController;
 use App\Http\Controllers\admin\AdminNotificationController;
+use App\Http\Controllers\user\UserDashboardController;
+use App\Http\Controllers\user\RoomUserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReplyController;
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -61,22 +77,39 @@ Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
 Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
 
+Route::middleware('auth:api')->group(function () {
+    Route::get('/user/dashboard', [UserDashboardController::class, 'index'])->name(name: 'dashboard');
+    Route::get('/user/{user_id}/dashboard', [UserDashboardController::class, 'getUserDashboardById']);
+    Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
+    Route::get('/user/bookings', [UserDashboardController::class, 'getUserBookings']);
+    Route::get('/user/notifications', [UserDashboardController::class, 'getNotifications']);
+    Route::get('/user/booking/reject-reason/{booking_id}', [UserDashboardController::class, 'getRejectReason']);
+});
+Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
+Route::get('/get-events', [BookingController::class, 'getEvents'])->name('get-events');
+Route::get('/booking/events', [BookingController::class, 'getEvents'])->name('booking.events');
+Route::get('/book_detail', [BookingController::class, 'detail'])->name('booking.detail');
 
-// routes/api.php
-Route::middleware('auth:sanctum')->group(function () {
-    // Notification Routes
+Route::get('/booking/{booking_id}', [BookingController::class, 'show'])->name('booking.show');
 
+Route::middleware('auth:api')->group(function () {
+    Route::get('/booking/{booking_id}', [BookingController::class, 'show']);
+    Route::post('/booking/store', [BookingController::class, 'store']);
+    Route::get('/get-events', [BookingController::class, 'getEvents']);
+    Route::get('/my-bookings', [BookingController::class, 'myBookings']);
+    Route::get('/get-reject-reason/{booking_id}', [BookingController::class, 'getRejectReason']);
+    Route::get('/get-notifications', [BookingController::class, 'getNotifications']);
 });
 
-// Route::middleware('auth:sanctum')->group(function () {
-//     // Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
-//     Route::get('/user/bookings/{booking}/reject-reason', [BookingController::class, 'getRejectReason']);
-//     Route::post('/user/bookings/{booking}/cancel', [BookingController::class, 'cancelBooking']);
-// });
-// Route::get('/user/bookings', [BookingController::class, 'getUserBookings']);
+// ตั้งค่า route สำหรับการดึงข้อมูลห้องประชุมที่พร้อมจอง
+Route::get('/rooms/available', [BookingController::class, 'showAvailableRooms']);
+Route::get('/api/rooms', [RoomUserController::class, 'getRooms']);
 
-// Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
-// Route::middleware(['auth:sanctum'])->group(function() {
-//     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('api.booking.show');
-//     Route::post('/booking', [BookingController::class, 'store'])->name('api.booking.store');
-// });
+Route::middleware('auth')->post('/room/{bookingId}/comment', [CommentController::class, 'storeComment']);
+Route::get('/room/{roomId}/comments', [CommentController::class, 'getComments']);
+Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply']);
+Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
+Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getReplies']);
+Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getCommentsWithReplies']);
+Route::get('/search-rooms', [RoomUserController::class, 'searchRooms']);
