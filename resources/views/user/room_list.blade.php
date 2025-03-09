@@ -24,7 +24,12 @@
         </div>
         <div class="max-w-6xl mx-auto my-6">
             <h2 class="text-2xl font-bold text-center mb-6">รายการห้องประชุม</h2>
+            <div class="mb-4 text-center">
+                <input type="text" id="searchInput" class="px-4 py-2 border rounded-lg" placeholder="ค้นหาห้องประชุม..."
+                    onkeyup="searchRooms()">
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
                 @foreach ($room_data as $room)
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                         <img src="{{ Storage::url($room->room_pic) }}" alt="Room Image" class="w-full h-48 object-cover">
@@ -96,6 +101,55 @@
                 roomList.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูลห้องประชุม</li>';
             });
     });
+
+    function searchRooms() {
+        const searchQuery = document.getElementById('searchInput').value; // รับค่าจากช่องค้นหา
+
+        // ส่งคำค้นหาผ่าน API
+        fetch(`/search-rooms?query=${searchQuery}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); // ดูข้อมูลที่ส่งมาจาก Controller
+
+                const roomListContainer = document.getElementById('roomListContainer');
+                roomListContainer.innerHTML = ''; // เคลียร์ข้อมูลเดิม
+
+                if (data.length === 0) {
+                    roomListContainer.innerHTML = '<p class="text-gray-400">ไม่พบห้องประชุมที่ค้นหา</p>';
+                } else {
+                    data.forEach(room => {
+                        const roomItem = `
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden room-item">
+                            <img src="${room.room_pic}" alt="Room Image" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold text-gray-800">${room.room_name}</h3>
+                                <p class="text-gray-600 mt-2 text-sm">${room.room_detail}</p>
+                                <div class="flex justify-between items-center mt-4">
+                                    <span class="text-sm font-bold ${
+                                        room.room_status === 'available' ? 'text-green-500' :
+                                        room.room_status === 'booked' ? 'text-red-500' : 'text-yellow-500'
+                                    }">
+                                        ${room.room_status === 'available' ? 'ว่าง' :
+                                        room.room_status === 'booked' ? 'จองแล้ว' : 'ปิดปรับปรุง'}
+                                    </span>
+                                    <a href="/room_detail/${room.id}" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                                        ดูรายละเอียดและจอง
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                        roomListContainer.innerHTML += roomItem;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error searching rooms:', error);
+                const roomListContainer = document.getElementById('roomListContainer');
+                roomListContainer.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการค้นหาห้องประชุม</p>';
+            });
+    }
 </script>
+
 
 </html>

@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
+
 <body class="bg-gray-100" x-data="{ sidebarOpen: false }">
     @extends('layouts.app')
     @include('layouts.navigation')
@@ -92,9 +93,7 @@
                                                 class="block text-sm font-bold mb-1">เนื้อหาการจอง</label>
                                             <input type="text" name="bookdetail" id="bookdetail"
                                                 class="w-full border border-gray-300 rounded p-2">
-                                            {{-- @error('bookdetail')
-                                                <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
-                                            @enderror --}}
+
                                         </div>
 
                                         <!-- ฟิลด์ชื่อผู้จอง (auto-filled) -->
@@ -118,9 +117,7 @@
                                             <label for="booktel" class="block text-sm font-bold mb-1">เบอร์โทรศัพท์</label>
                                             <input type="text" name="booktel" id="booktel"
                                                 class="w-full border border-gray-300 rounded p-2" required>
-                                            {{-- @error('booktel')
-                                                <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
-                                            @enderror --}}
+
                                         </div>
 
                                         <!-- ฟิลด์วันที่และเวลา -->
@@ -170,7 +167,7 @@
                                         </div>
                                         <div class="mb-4">
                                             <label for="bookstatus"
-                                                class="block text-sm font-bold mb-1">สถานะการจอง</label>
+                                                class="block text-sm font-bold mb-1" >สถานะการจอง</label>
 
                                             <!-- Placeholder สำหรับแสดงสถานะการจอง -->
                                             <input type="text" id="bookstatus"
@@ -186,7 +183,7 @@
                                         <button id="close-modal" @click="openBookingModal = false"
                                             class="bg-red-500 text-white px-4 py-2 rounded mt-4">ยกเลิก</button>
                                     </form>
-                                    {{-- <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p> --}}
+                                    <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p>
                                 </div>
                             </div>
                         </div><!-- Success Modal -->
@@ -216,15 +213,24 @@
                     <p>ไม่พบข้อมูลห้อง</p>
                 @endif
             </div>
-            <div id="comments-section" class="bg-gray-50 p-6 rounded-lg shadow-lg">
-                <div class="comments-section">
-                    <h3>ความคิดเห็น</h3>
-                    <div id="comments-list"></div>
+            <div class="pt-9">
+                <div id="comments-section" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="comments-section">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">ความคิดเห็น</h3>
+                        <div id="comments-list" class="space-y-4">
+                            <!-- คอมเมนต์จะแสดงที่นี่ -->
+                        </div>
 
-                    <!-- ฟอร์มส่งความคิดเห็น -->
-                    <textarea id="comment-text" placeholder="แสดงความคิดเห็น..." class="form-control"></textarea>
-                    <button id="submit-comment-button"
-                        onclick="submitComment({{ $room->id }})">ส่งความคิดเห็น</button>
+                        <!-- ฟอร์มส่งความคิดเห็น -->
+                        <textarea id="comment-text" placeholder="แสดงความคิดเห็น..."
+                            class="form-control p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+                            rows="0"></textarea>
+                        <button id="submit-comment-button"
+                            class="w-full py-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300"
+                            onclick="submitComment({{ $room->id }})">
+                            ส่งความคิดเห็น
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -268,8 +274,6 @@
         });
     </script>
 @endif
-
-
 <script>
     // ดึงข้อมูลสถานะการจองจาก API
     fetch(`/api/booking-status/${roomId}`) // ปรับ URL ให้ตรงกับ API ของคุณ
@@ -493,6 +497,8 @@
 
     async function fetchComments() {
         const bookingId = {{ $room->id ?? 'null' }};
+        const userId = {{ auth()->id() ?? 'null' }}; // ดึงข้อมูล user_id ของผู้ใช้ที่ล็อกอิน
+
         if (bookingId === null || bookingId === 'null') {
             console.error("Booking ID is not available.");
             return;
@@ -511,27 +517,174 @@
             // การแสดงผลคอมเมนต์
             let commentsHTML = '';
             comments.forEach(comment => {
+                const commentDate = new Date(comment.created_at);
+                const formattedDate = commentDate.toLocaleString('en-GB', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                const username = comment.user && comment.user.username ? comment.user.username :
+                    "Anonymous";
+
+                // เพิ่มเงื่อนไขในการแสดงปุ่มแก้ไขและลบ
+                const isUserComment = comment.user && comment.user.id === userId;
+
                 commentsHTML += `
-                <div class="comment">
-                    <p><strong>${comment.user.username}</strong>: ${comment.comment}</p>
-                    <div class="replies">
-                        ${comment.replies.map(reply => `
-                            <div class="reply">
-                                <p><strong>${reply.user.username}</strong>: ${reply.comment}</p>
-                            </div>
-                        `).join('')}
-                    </div>
+            <div class="comment" id="comment-${comment.id}">
+                <p><strong>${username}</strong> <span class="comment-date">${formattedDate}</span></p>
+                <p class="comment-text">${comment.comment}</p>
+
+                <!-- แสดงปุ่มแก้ไขและลบเฉพาะความคิดเห็นของผู้ใช้ที่ล็อกอิน -->
+                ${isUserComment ? `
+                    <button onclick="editComment(${comment.id}, '${comment.comment}')" class="text-blue-600">แก้ไข</button>
+                    <button onclick="deleteComment(${comment.id})"class="text-red-600">ลบ</button>
+                ` : ''}
+
+                <div class="replies">
+                    ${comment.replies.map(reply => {
+                        const replyDate = new Date(reply.created_at);
+                        const formattedReplyDate = replyDate.toLocaleString('en-GB', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
+                        const replyUsername = reply.user && reply.user.username ? reply.user.username : "Anonymous";
+                        return ` <
+                    div class = "reply" >
+                    <
+                    p > < strong > $ {
+                        replyUsername
+                    } < /strong> <span class="comment-date">${formattedReplyDate}</span >: $ {
+                        reply.comment
+                    } < /p> < /
+                div >
+                    `;
+                    }).join('')}
                 </div>
-            `;
+            </div>
+            `; // end of comment HTML
             });
 
             document.getElementById("comments-list").innerHTML = commentsHTML;
 
         } catch (error) {
             console.error("Error fetching comments:", error);
-            alert("ไม่สามารถโหลดความคิดเห็นได้");
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถโหลดความคิดเห็นได้',
+                confirmButtonText: 'ตกลง'
+            });
         }
+
     }
+
+    // ฟังก์ชันแก้ไขความคิดเห็น
+    function editComment(commentId, currentComment) {
+        // แสดงช่อง input หรือ textarea เพื่อให้ผู้ใช้แก้ไขความคิดเห็น
+        const commentElement = document.getElementById(`comment-${commentId}`);
+        const currentText = commentElement.querySelector('.comment-text');
+
+        // สร้างช่อง input หรือ textarea สำหรับแก้ไขข้อความ
+        const textarea = document.createElement('textarea');
+        textarea.value = currentText.innerHTML;
+        currentText.innerHTML = ''; // ลบข้อความเดิม
+
+        // เปลี่ยนช่องข้อความให้เป็น textarea
+        commentElement.appendChild(textarea);
+
+        // สร้างปุ่ม Save และ Cancel
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('button-container'); // เพิ่มคลาสสำหรับจัดการสไตล์ปุ่ม
+
+        const saveButton = document.createElement('button');
+        saveButton.textContent = 'บันทึก';
+        saveButton.classList.add('save-button'); // เพิ่มคลาสสำหรับปุ่ม Save
+
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'ยกเลิก';
+        cancelButton.classList.add('cancel-button'); // เพิ่มคลาสสำหรับปุ่ม Cancel
+
+        // เพิ่มปุ่มลงใน container
+        buttonContainer.appendChild(saveButton);
+        buttonContainer.appendChild(cancelButton);
+        commentElement.appendChild(buttonContainer);
+
+
+        // ถ้าผู้ใช้คลิกปุ่ม Cancel, รีเซ็ตข้อความ
+        cancelButton.addEventListener('click', () => {
+            currentText.innerHTML = currentComment;
+            commentElement.removeChild(textarea);
+            commentElement.removeChild(buttonContainer);
+        });
+
+        // ถ้าผู้ใช้คลิกปุ่ม Save, ส่งข้อมูลไปแก้ไขคอมเมนต์
+        saveButton.addEventListener('click', () => {
+            const newComment = textarea.value;
+            if (newComment.trim()) {
+                // ส่งข้อมูลไปที่ API
+                fetch(`/comment/${commentId}/update`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({
+                            comment: newComment
+                        })
+                    }).then(response => response.json())
+                    .then(data => {
+                        fetchComments({{ $room->id }});
+                    }).catch(error => console.error('Error editing comment:', error));
+
+                commentElement.removeChild(textarea);
+                commentElement.removeChild(buttonContainer);
+            }
+        });
+    }
+
+
+
+    function deleteComment(commentId) {
+        // แสดง SweetAlert2 สำหรับการยืนยันการลบความคิดเห็น
+        Swal.fire({
+            title: 'คุณแน่ใจหรือไม่?',
+            text: "คุณจะไม่สามารถย้อนกลับสิ่งนี้ได้",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonText: 'ยกเลิก',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ใช่, ฉันต้องการลบ!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/comment/${commentId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        }
+                    }).then(response => response.json())
+                    .then(data => {
+                        fetchComments({{ $room->id }});
+                        Swal.fire(
+                            'ลบสำเร็จ!',
+                            'คอมเมนต์ของท่านถูกลบไปแล้ว.',
+                            'success'
+                        );
+                    }).catch(error => console.error('Error deleting comment:', error));
+            }
+        });
+    }
+
 
 
     function submitComment(bookingId) {
@@ -589,42 +742,29 @@
                 }).catch(error => console.error('Error posting reply:', error));
         }
     }
-
-    function editComment(commentId) {
-        const newComment = prompt("กรุณากรอกความคิดเห็นใหม่");
-        if (newComment) {
-            fetch(`/comment/${commentId}/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    },
-                    body: JSON.stringify({
-                        comment: newComment
-                    })
-                }).then(response => response.json())
-                .then(data => {
-                    fetchComments({{ $room->id }});
-                }).catch(error => console.error('Error editing comment:', error));
-        }
-    }
-
-    function deleteComment(commentId) {
-        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบความคิดเห็นนี้?")) {
-            fetch(`/comment/${commentId}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    }
-                }).then(response => response.json())
-                .then(data => {
-                    fetchComments({{ $room->id }});
-                }).catch(error => console.error('Error deleting comment:', error));
-        }
-    }
 </script>
 <style>
+    /* สไตล์ทั่วไปสำหรับ container ของปุ่ม */
+    .button-container {
+        display: flex;
+        gap: 10px;
+        /* ระยะห่างระหว่างปุ่ม */
+        margin-top: 10px;
+        /* ระยะห่างจากข้อความ */
+    }
+
+    /* สไตล์ปุ่ม Save */
+    .save-button {
+        color: green;
+    }
+
+
+    /* สไตล์ปุ่ม Cancel */
+    .cancel-button {
+        color: orange;
+    }
+
+
     #comments-list {
         max-height: 350px;
         /* กำหนดความสูงสูงสุดของคอมเมนต์ */
@@ -671,6 +811,83 @@
         color: white;
         border-radius: 4px;
     }
+
+    <style>
+
+    /* การตกแต่งพื้นหลังและการจัด layout */
+    #comments-section {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .comments-section {
+        padding: 20px;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    #comments-list {
+        margin-top: 20px;
+    }
+
+    .comment {
+        padding: 12px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .comment-text {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .comment .comment-date {
+        font-size: 0.875rem;
+        color: #888;
+    }
+
+    /* การตกแต่ง textarea */
+    .form-control {
+        font-size: 1rem;
+        color: #333;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+    }
+
+    /* การตกแต่งปุ่ม */
+    #submit-comment-button {
+        padding: 12px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #submit-comment-button:hover {
+        background-color: #2563eb;
+    }
+</style>
 </style>
 
 </html>

@@ -169,3 +169,4 @@ Route::post('/comment/{commentId}/reply', [CommentController::class, 'storeReply
 Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComment']);
 Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
 Route::get('comments/{commentId}/replies', [CommentController::class, 'getReplies']);
+// ใน routes/web.php

@@ -96,3 +96,4 @@ Route::put('/comment/{commentId}/update', [CommentController::class, 'updateComm
 Route::delete('/comment/{commentId}/delete', [CommentController::class, 'deleteComment']);
 Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getReplies']);
 Route::get('/comments/{bookingId}/replies', [CommentController::class, 'getCommentsWithReplies']);
+Route::get('/search-rooms', [RoomUserController::class, 'searchRooms']);

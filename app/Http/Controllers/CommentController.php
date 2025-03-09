@@ -46,8 +46,9 @@ class CommentController extends Controller
 
     public function getComments($bookingId)
     {
-        $comments = Comment::with('user', 'replies.user')
-            ->where('booking_id', $bookingId)
+        // ดึงคอมเมนต์พร้อมข้อมูลผู้ใช้ที่เชื่อมโยง
+        $comments = Comment::where('book_id', $bookingId)
+            ->with('user')  // รวมข้อมูลผู้ใช้ที่เชื่อมโยง
             ->get();
 
         return response()->json($comments);
@@ -56,7 +57,7 @@ class CommentController extends Controller
     {
         // ดึงคอมเมนต์ที่เกี่ยวข้องกับ booking_id
         $comments = Comment::where('book_id', $booking_id)
-            ->with('replies.user') // ใช้ with เพื่อดึงข้อมูล replies และ user ที่ตอบกลับ
+            ->with(['user', 'replies.user']) // เช็คให้แน่ใจว่าได้ดึงข้อมูลผู้ใช้สำหรับคำตอบและคอมเมนต์
             ->get();
 
         return response()->json($comments);
@@ -97,6 +98,7 @@ class CommentController extends Controller
 
         $comment = Comment::findOrFail($commentId);
 
+        // ตรวจสอบว่าเป็นความคิดเห็นของผู้ใช้ที่ล็อกอินหรือไม่
         if ($comment->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -107,11 +109,11 @@ class CommentController extends Controller
 
         return response()->json($comment);
     }
-
     public function deleteComment($commentId)
     {
         $comment = Comment::findOrFail($commentId);
 
+        // ตรวจสอบว่าเป็นความคิดเห็นของผู้ใช้ที่ล็อกอินหรือไม่
         if ($comment->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
