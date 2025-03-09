@@ -140,13 +140,6 @@
                         </div>
                     </div>
 
-                    <!-- ข้อมูลดีบัก (แสดงเฉพาะในโหมดพัฒนา) -->
-                    <div id="debug-info"
-                        class="mb-4 p-3 bg-gray-100 rounded-lg text-xs font-mono text-gray-600 hidden">
-                        <p class="font-bold mb-1">Debug Mode</p>
-                        <div id="debug-content"></div>
-                    </div>
-
                     <!-- ปุ่มดำเนินการ -->
                     <div class="flex justify-between">
                         <div>
@@ -157,8 +150,7 @@
                         </div>
                         <div class="space-x-2">
                             <button type="button" id="btnSetMaintenance" style="display: none;"
-                                class="px-6 py-2 border border-yellow-500 rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                                ปิดปรับปรุงห้องประชุม
+                                class=""> 
                             </button>
                             <button type="button" onclick="confirmAndSubmitRoom()"
                                 class="px-6 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">

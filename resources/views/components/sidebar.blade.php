@@ -29,7 +29,7 @@
     <!-- Bottom Options -->
     <div class="absolute bottom-6 w-full">
         <button onclick="logout()" class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100">
-            ออกจากระบบ
+            Logout
         </button>
     </div>
 </aside>

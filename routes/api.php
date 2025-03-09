@@ -27,10 +27,10 @@ Route::prefix('admin')->group(function () {
  * 🔹 Admin Protected Routes (Require Authentication)
  */
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
-    
-    // Dashboard
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-        ->name('admin.dashboard');
+    // Dashboard Routes
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard/room-usage', [AdminDashboardController::class, 'getRoomUsage']);
+
 
     // Rooms Management - explicitly define the routes
     Route::get('/rooms', [AdminRoomController::class, 'index']);
@@ -38,10 +38,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/rooms/{id}', [AdminRoomController::class, 'show']);
     Route::PUT('/rooms/{id}', [AdminRoomController::class, 'update']);
     Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy']);
-    Route::post('/rooms/{id}', [AdminRoomController::class, 'update']); 
+    Route::post('/rooms/{id}', [AdminRoomController::class, 'update']);
 
     // Route::put('/rooms/{roomId}/maintenance', 'setMaintenance');
-    
+
     // การจัดการการจอง
     Route::get('/bookings', [AdminBookingController::class, 'getBookings']);
     Route::get('/bookings/{id}', [AdminBookingController::class, 'show']);

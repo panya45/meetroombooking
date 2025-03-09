@@ -15,14 +15,8 @@ class AdminBookingController extends Controller
         return view('admin.room_booking');
     }
 
-    /**
-     * ดึงข้อมูลการจองทั้งหมดสำหรับ Admin
-     */
     public function getBookings()
     {
-        // "SQLSTATE[42S22]: Column not found: 1054 Unknown column 'users.name' in 'field list' (Connection: mysql, SQL: select `booking`.*, 
-        // `users`.`name` as `username`, `users`.`email` from `booking` inner join `users` on `bookings`.`user_id` = `users`.`id`)"
-        // ดึงข้อมูลทั้งหมดพร้อมความสัมพันธ์
         $bookings = Booking::with(['room', 'user'])
             ->select('booking.*', 'users.username as username', 'users.email')
             ->join('users', 'booking.user_id', '=', 'users.id')
@@ -67,9 +61,6 @@ class AdminBookingController extends Controller
         ]);
     }
 
-    /**
-     * ดึงข้อมูลการจองตาม ID
-     */
     public function show($id)
     {
         $booking = Booking::select('booking.*', 'users.username as username', 'users.email')
@@ -88,9 +79,6 @@ class AdminBookingController extends Controller
         return response()->json($booking);
     }
 
-    /**
-     * อัพเดทสถานะการจอง (อนุมัติ/ปฏิเสธ)
-     */
     public function updateStatus(Request $request, $bookId)
     {
         $request->validate([
@@ -135,9 +123,6 @@ class AdminBookingController extends Controller
         ]);
     }
 
-    /**
-     * ดึงเหตุผลการปฏิเสธจาก Session
-     */
     public function getRejectReason($bookId)
     {
         $sessionKey = "reject_reason_booking_{$bookId}";
@@ -148,9 +133,6 @@ class AdminBookingController extends Controller
         ]);
     }
 
-    /**
-     * เพิ่มการแจ้งเตือนให้ผู้ใช้ (ยังคงใช้ Cache)
-     */
     private function addNotificationForUser($userId, $message, $status, $bookingId)
     {
         $cacheKey = "user_notifications_{$userId}";
@@ -174,9 +156,6 @@ class AdminBookingController extends Controller
         }
     }
 
-    /**
-     * ดึงแนบนบ Calendar
-     */
     public function calendar()
     {
         $pendingCount = Booking::where('bookstatus', 'pending')->count();
@@ -186,9 +165,6 @@ class AdminBookingController extends Controller
         return view('admin.calendar', compact('pendingCount', 'approvedCount', 'rejectedCount'));
     }
 
-    /**
-     * ดึงข้อมูลเหตุการณ์สำหรับปฏิทิน
-     */
     public function getEvents()
     {
         $bookings = Booking::with('room', 'user')->get();

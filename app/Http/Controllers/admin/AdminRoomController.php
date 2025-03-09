@@ -16,8 +16,6 @@ class AdminRoomController extends Controller
     {
         // ตั้งค่าพารามิเตอร์เริ่มต้น
         $search = $request->input('search', '');
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortDirection = $request->input('sort_direction', 'asc');
 
         // สร้าง query builder
         $query = Room::query();
@@ -25,14 +23,9 @@ class AdminRoomController extends Controller
         // เพิ่มเงื่อนไขการค้นหาด้วย LIKE operator ถ้ามีการระบุคำค้นหา
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('room_name', 'LIKE', "%{$search}%")
-                    ->orWhere('room_detail', 'LIKE', "%{$search}%");
+                $q->whereRaw('LOWER(room_name) LIKE ?', ['%' . mb_strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(room_detail) LIKE ?', ['%' . mb_strtolower($search) . '%']);
             });
-        }
-
-        // จัดการการเรียงลำดับ
-        if ($sortBy) {
-            $query->orderBy($sortBy, $sortDirection);
         }
 
         // ดึงข้อมูลพร้อมกับความสัมพันธ์ images

@@ -91,14 +91,6 @@
                     <div class="text-sm text-gray-500 mb-2 sm:mb-0">
                         <span id="room-count">0</span> ห้องประชุม
                     </div>
-                    <div class="flex space-x-2">
-                        <span class="text-sm text-gray-600 mr-2 self-center">เรียงลำดับตามวันที่สร้าง:</span>
-                        <button @click="sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; loadMeetingRooms()"
-                            class="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <span x-show="sortDirection === 'asc'">เก่าไปใหม่ ↑</span>
-                            <span x-show="sortDirection === 'desc'">ใหม่ไปเก่า ↓</span>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Room Table -->
@@ -120,16 +112,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
-                <!-- ลบส่วน Pagination ออกทั้งหมด -->
-                <div class="border-t px-4 py-3 flex items-center justify-between">
-                    <div class="text-sm">
-                        แสดงทั้งหมด
-                        <span class="font-medium" id="room-count">10</span>
-                        รายการ
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -143,6 +125,13 @@
                 // Then load actual data
                 loadMeetingRooms();
             });
+
+            // ตัวแปรทั่วไปเพื่อเก็บข้อมูลทั้งหมด
+            let allRooms = [];
+            let filteredRooms = [];
+            let currentPage = 1;
+            let sortDirection = 'asc';
+            let searchQuery = '';
 
             function loadMeetingRooms() {
                 let token = localStorage.getItem('admin_token');

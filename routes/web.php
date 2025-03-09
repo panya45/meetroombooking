@@ -58,11 +58,11 @@ Route::middleware('auth:admin')->group(function () {
         return view('admin.room_booking');
     })->name('admin.room.booking');
 
-    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/bookings', [AdminDashboardController::class, 'bookings'])->name('admin.bookings');
-    Route::get('/admin/rooms', [AdminDashboardController::class, 'rooms'])->name('admin.rooms');
-    Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
-    Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
+    // Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    // Route::get('/admin/bookings', [AdminDashboardController::class, 'bookings'])->name('admin.bookings');
+    // Route::get('/admin/rooms', [AdminDashboardController::class, 'rooms'])->name('admin.rooms');
+    // Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
+    // Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
     // Route::get('/admin/room_booking', [AdminBookingController::class, 'index'])->name('admin.room.booking');
     // Route::get('/admin/room_booking/{id}', [AdminBookingController::class, 'show']);
     Route::patch('/admin/bookings/{bookId}/status', [BookingController::class, 'updateBookingStatus']);
