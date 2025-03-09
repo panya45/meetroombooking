@@ -63,8 +63,8 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('/admin/rooms', [AdminDashboardController::class, 'rooms'])->name('admin.rooms');
     Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('admin.users');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
-    Route::get('/admin/room_booking', [AdminBookingController::class, 'index'])->name('admin.room.booking');
-    Route::get('/admin/room_booking/{id}', [AdminBookingController::class, 'show']);
+    // Route::get('/admin/room_booking', [AdminBookingController::class, 'index'])->name('admin.room.booking');
+    // Route::get('/admin/room_booking/{id}', [AdminBookingController::class, 'show']);
     Route::patch('/admin/bookings/{bookId}/status', [BookingController::class, 'updateBookingStatus']);
     Route::get('/admin/bookings/{bookId}', [BookingController::class, 'getBooking']);
 
@@ -110,9 +110,9 @@ Route::get('/user/myBookings/data', [App\Http\Controllers\User\BookingController
 Route::get('/user/bookings/{bookId}/reject-reason', [BookingController::class, 'getRejectReason']);
 
 // Route::prefix('admin')->name('admin.')->group(function () {
-//     Route::get('bookings', [AdminBookingController::class, 'index'])->name('booking.index');
-//     Route::get('bookings/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
-//     Route::patch('bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
+    // Route::get('bookings', [AdminBookingController::class, 'index'])->name('booking.index');
+    // Route::get('bookings/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
+    // Route::patch('bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
     // Route::get('notifications', [AdminNotificationController::class, 'fetchNotifications']);
     // Route::post('notifications/clear', [AdminNotificationController::class, 'clearNotifications'])->name('notifications.clear');
     // Route::post('notifications/remove', [AdminNotificationController::class, 'removeNotification'])->name('notifications.remove');

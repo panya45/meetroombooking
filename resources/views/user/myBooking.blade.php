@@ -167,7 +167,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- ข้อมูลการจอง - คอลัมน์ซ้าย -->
                         <div class="space-y-6">
-                            <!-- ชื่อโครงการ -->
+                            <!-- ชื่อ -->
                             <div>
                                 <h2 class="text-xl font-bold text-gray-800 mb-2" x-text="selectedBooking.booktitle"></h2>
                                 <div class="flex justify-between items-center">
@@ -269,8 +269,8 @@
                                 </div>
                                 <div class="flex mb-2">
                                     <div class="font-medium text-gray-800" x-text="selectedBooking.room_name"></div>
-                                    <div class="text-sm text-gray-500 ml-2">ห้องที่ <span
-                                            x-text="selectedBooking.room_id"></span></div>
+                                    {{-- <div class="text-sm text-gray-500 ml-2">ห้องที่ <span
+                                            x-text="selectedBooking.room_id"></span></div> --}}
                                 </div>
                             </div>
 
@@ -434,40 +434,43 @@
                 },
 
                 filterBookings() {
-                    // If bookings array is empty, don't filter
-                    if (!this.bookings || this.bookings.length === 0) {
-                        this.filteredBookings = [];
-                        return;
-                    }
-
-                    let filtered = [...this.bookings];
-
-                    // Filter by search query
+                    // 1. กรองด้วยคำค้นหาก่อน
                     if (this.searchQuery) {
                         const query = this.searchQuery.toLowerCase();
-                        filtered = filtered.filter(booking =>
+                        this.filteredBookings = this.bookings.filter(booking =>
                             booking.book_id?.toString().includes(query) ||
-                            booking.booktitle?.toLowerCase().includes(query)
+                            booking.booktitle?.toLowerCase().includes(query) ||
+                            booking.username?.toLowerCase().includes(query) ||
+                            booking.email?.toLowerCase().includes(query) ||
+                            (booking.room?.room_name?.toLowerCase().includes(query) || false)
                         );
+                    } else {
+                        this.filteredBookings = this.bookings;
                     }
 
-                    // Sort bookings
-                    filtered.sort((a, b) => {
-                        if (this.sortField === 'date') {
-                            return this.sortOrder === 'asc' ?
-                                new Date(a.book_date || '2000-01-01') - new Date(b.book_date ||
-                                    '2000-01-01') :
-                                new Date(b.book_date || '2000-01-01') - new Date(a.book_date ||
-                                    '2000-01-01');
-                        } else if (this.sortField === 'id') {
-                            return this.sortOrder === 'asc' ?
-                                (a.book_id || 0) - (b.book_id || 0) :
-                                (b.book_id || 0) - (a.book_id || 0);
-                        }
-                        return 0;
-                    });
+                    // 2. คำนวณข้อมูล pagination สำหรับแต่ละ tab
+                    const pendingBookings = this.filteredBookings.filter(b => b.bookstatus ===
+                        'pending');
+                    const approvedBookings = this.filteredBookings.filter(b => b.bookstatus ===
+                        'approved');
+                    const rejectedBookings = this.filteredBookings.filter(b => b.bookstatus ===
+                        'rejected');
 
-                    this.filteredBookings = filtered;
+                    // คำนวณจำนวนหน้าทั้งหมดสำหรับแต่ละ tab
+                    this.pendingTotalPages = Math.max(1, Math.ceil(pendingBookings.length / this
+                        .itemsPerPage));
+                    this.approvedTotalPages = Math.max(1, Math.ceil(approvedBookings.length / this
+                        .itemsPerPage));
+                    this.rejectedTotalPages = Math.max(1, Math.ceil(rejectedBookings.length / this
+                        .itemsPerPage));
+
+                    // ตรวจสอบว่า current page ไม่เกินจำนวนหน้าทั้งหมด
+                    if (this.pendingPage > this.pendingTotalPages) this.pendingPage = this
+                        .pendingTotalPages;
+                    if (this.approvedPage > this.approvedTotalPages) this.approvedPage = this
+                        .approvedTotalPages;
+                    if (this.rejectedPage > this.rejectedTotalPages) this.rejectedPage = this
+                        .rejectedTotalPages;
                 },
 
                 sortBy(field) {
@@ -479,6 +482,11 @@
                     }
                     this.filterBookings();
                 },
+
+                changeTab(tab) {
+                    this.activeTab = tab;
+                },
+
 
                 openDetail(booking) {
                     this.selectedBooking = {

@@ -40,19 +40,26 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy']);
 
     // Route::put('/rooms/{roomId}/maintenance', 'setMaintenance');
-
-    Route::get('/bookings', [AdminBookingController::class, 'index']);
+    
+    // การจัดการการจอง
+    Route::get('/bookings', [AdminBookingController::class, 'getBookings']);
     Route::get('/bookings/{id}', [AdminBookingController::class, 'show']);
-    Route::patch('/bookings/{bookId}/status', [AdminBookingController::class, 'updateStatus']);
-    Route::get('/user/bookings/{bookId}', [BookingController::class, 'show']);
+    Route::patch('/bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
+    Route::get('/bookings/{id}/reject-reason', [AdminBookingController::class, 'getRejectReason']);
 
     Route::get('/notifications', [AdminNotificationController::class, 'getNotifications']);
     Route::delete('/notifications/{id}', [AdminNotificationController::class, 'deleteNotification']);
     Route::delete('/notifications/clear-all', [AdminNotificationController::class, 'clearAllNotifications']);
+
+    // แสดงปฏิทิน
+    Route::get('/events', [AdminBookingController::class, 'getEvents']);
 });
+
+
 Route::post('/register', [RegisteredUserController::class, 'register']);
 Route::post('/login', [RegisteredUserController::class, 'login']);
 Route::post('/logout', [RegisteredUserController::class, 'Logout'])->middleware('auth:sanctum');
+
 
 // routes/api.php
 Route::middleware('auth:sanctum')->group(function () {

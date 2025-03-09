@@ -23,21 +23,13 @@
                     จัดการห้องประชุม
                 </a>
             </li>
-            <li>
-                <a href="{{ route('admin.users') }}" class="block py-3 px-6 hover:bg-gray-100 rounded-lg">
-                    จัดการผู้ใช้
-                </a>
-            </li>
         </ul>
     </nav>
 
     <!-- Bottom Options -->
     <div class="absolute bottom-6 w-full">
-        <a href="{{ route('admin.settings') }}" class="block py-3 px-6 hover:bg-gray-100">
-            Settings
-        </a>
         <button onclick="logout()" class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100">
-            Logout
+            ออกจากระบบ
         </button>
     </div>
 </aside>

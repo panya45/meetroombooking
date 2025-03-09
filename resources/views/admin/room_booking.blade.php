@@ -10,9 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-gray-50 font-sans" x-data="bookingSystem">
+<body class="bg-gray-50 font-sans" x-data="bookingSystem()">
     <!-- Navbar -->
     @include('components.navigationbar')
 
@@ -33,10 +34,10 @@
                         <i class="fas fa-search"></i>
                     </div>
                 </div>
-                <button
+                {{-- <button
                     class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out flex items-center">
                     <i class="fas fa-plus mr-2"></i> ส่งออกรายงาน
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -44,21 +45,21 @@
         <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
             <!-- Tabs -->
             <div class="flex border-b">
-                <button @click="activeTab = 'pending'"
+                <button @click="changeTab('pending')"
                     :class="{ 'text-blue-600 border-b-2 border-blue-600 font-medium': activeTab === 'pending' }"
                     class="px-6 py-4 text-gray-600 hover:text-gray-900 focus:outline-none">
                     <i class="fas fa-clock mr-2 text-yellow-500"></i>
                     รอการอนุมัติ <span class="ml-1 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs"
                         x-text="pendingCount"></span>
                 </button>
-                <button @click="activeTab = 'approved'"
+                <button @click="changeTab('approved')"
                     :class="{ 'text-blue-600 border-b-2 border-blue-600 font-medium': activeTab === 'approved' }"
                     class="px-6 py-4 text-gray-600 hover:text-gray-900 focus:outline-none">
                     <i class="fas fa-check-circle mr-2 text-green-500"></i>
                     อนุมัติแล้ว <span class="ml-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs"
                         x-text="approvedCount"></span>
                 </button>
-                <button @click="activeTab = 'rejected'"
+                <button @click="changeTab('rejected')"
                     :class="{ 'text-blue-600 border-b-2 border-blue-600 font-medium': activeTab === 'rejected' }"
                     class="px-6 py-4 text-gray-600 hover:text-gray-900 focus:outline-none">
                     <i class="fas fa-times-circle mr-2 text-red-500"></i>
@@ -118,8 +119,8 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <template x-for="booking in filteredBookings.filter(b => b.bookstatus === 'pending')"
-                            :key="booking.book_id">
+                        <!-- ใช้ paginatedBookings แทน filteredBookings.filter -->
+                        <template x-for="booking in paginatedBookings" :key="booking.book_id">
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900" x-text="booking.book_id"></div>
@@ -162,19 +163,19 @@
                                         class="text-blue-600 hover:text-blue-900 mr-3">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button @click="approveBooking(booking.book_id)"
+                                    <button @click="showApproveAlert(booking.book_id)"
                                         class="text-green-600 hover:text-green-900 mr-3">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                    <button @click="showRejectForm(booking.book_id)"
+                                    <button @click="showRejectModal(booking.book_id)"
                                         class="text-red-600 hover:text-red-900">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </td>
                             </tr>
                         </template>
-                        <!-- Empty state for pending -->
-                        <tr x-show="filteredBookings.filter(b => b.bookstatus === 'pending').length === 0">
+                        <!-- Empty state when no bookings found -->
+                        <tr x-show="paginatedBookings.length === 0">
                             <td colspan="7" class="px-6 py-10 text-center">
                                 <div class="text-gray-500">
                                     <i class="fas fa-inbox text-4xl mb-3"></i>
@@ -350,14 +351,14 @@
 
             <!-- Pagination -->
             <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
-                x-show="!isLoading && !hasError">
+                x-show="!isLoading && !hasError && totalItems > 0">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <button @click="prevPage()" :disabled="currentPage === 1"
-                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         ก่อนหน้า
                     </button>
                     <button @click="nextPage()" :disabled="currentPage === totalPages"
-                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         ถัดไป
                     </button>
                 </div>
@@ -377,7 +378,7 @@
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                             aria-label="Pagination">
                             <button @click="prevPage()" :disabled="currentPage === 1"
-                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span class="sr-only">Previous</span>
                                 <i class="fas fa-chevron-left"></i>
                             </button>
@@ -385,10 +386,8 @@
                             <template x-for="page in paginationPages" :key="page">
                                 <button @click="goToPage(page)"
                                     :class="{
-                                        'bg-blue-50 border-blue-500 text-blue-600': currentPage ===
-                                            page,
-                                        'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !==
-                                            page
+                                        'bg-blue-50 border-blue-500 text-blue-600': currentPage === page,
+                                        'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !== page
                                     }"
                                     class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
                                     <span x-text="page"></span>
@@ -396,7 +395,7 @@
                             </template>
 
                             <button @click="nextPage()" :disabled="currentPage === totalPages"
-                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span class="sr-only">Next</span>
                                 <i class="fas fa-chevron-right"></i>
                             </button>
@@ -548,6 +547,12 @@
         </div>
     </div>
 
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
@@ -559,14 +564,31 @@
                 bookings: [],
                 filteredBookings: [],
                 searchQuery: '',
-                currentPage: 1,
-                itemsPerPage: 10,
-                totalPages: 1,
+
+                // ปรับปรุงตัวแปรสำหรับ pagination แยกตาม tab
+                pendingPage: 1,
+                approvedPage: 1,
+                rejectedPage: 1,
+                itemsPerPage: 5, // ลดจำนวนรายการต่อหน้าลงเพื่อให้เห็นการทำงานของ pagination
+
+                // ตัวแปรสำหรับเก็บข้อมูล pagination แยกตาม tab
+                pendingTotalPages: 1,
+                approvedTotalPages: 1,
+                rejectedTotalPages: 1,
+
                 isLoading: true,
                 hasError: false,
                 errorMessage: '',
+                authToken: localStorage.getItem('admin_token'),
 
                 init() {
+                    // รับ event เมื่อ token เปลี่ยนแปลง (ถ้ามีการ login ใหม่)
+                    window.addEventListener('storage', (event) => {
+                        if (event.key === 'admin_token') {
+                            this.authToken = event.newValue;
+                        }
+                    });
+
                     this.loadBookings();
                     this.checkUrlParams();
                 },
@@ -590,13 +612,23 @@
                     this.isLoading = true;
                     this.hasError = false;
 
+                    // ตรวจสอบ token อีกครั้งเผื่อมีการอัพเดต
+                    this.authToken = localStorage.getItem('admin_token');
+
+                    if (!this.authToken) {
+                        console.error('No authentication token found');
+                        this.hasError = true;
+                        this.errorMessage = 'ไม่พบ token สำหรับการยืนยันตัวตน กรุณาเข้าสู่ระบบใหม่';
+                        this.isLoading = false;
+                        return;
+                    }
+
                     axios.get('/api/admin/bookings', {
                             headers: {
-                                'Authorization': `Bearer ${token}`
+                                'Authorization': `Bearer ${this.authToken}`
                             }
                         })
                         .then(response => {
-                            console.log('Notifications data:', response.data);
 
                             // ตรวจสอบและประมวลผลข้อมูลที่ได้รับจาก API
                             if (response.data) {
@@ -686,22 +718,43 @@
                     }
                 },
 
+                // เปลี่ยน tab
+                changeTab(tab) {
+                    this.activeTab = tab;
+                },
+
                 openBookingModal(bookingId) {
                     // ใช้ Custom Event เพื่อเปิด Modal ในอีก Component
-                    this.$dispatch('open-booking-modal', {
-                        bookingId
+                    window.dispatchEvent(new CustomEvent('open-booking-modal', {
+                        detail: {
+                            bookingId: bookingId
+                        }
+                    }));
+                },
+
+                showApproveAlert(bookingId) {
+                    Swal.fire({
+                        title: 'ยืนยันอนุมัติการจอง?',
+                        text: "คุณต้องการอนุมัติการจองนี้ใช่หรือไม่?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'ใช่, อนุมัติ!',
+                        cancelButtonText: 'ยกเลิก'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.approveBooking(bookingId);
+                        }
                     });
                 },
 
                 approveBooking(bookingId) {
-                    if (!confirm('ต้องการอนุมัติการจองนี้ใช่หรือไม่?')) return;
-
-                    // ส่งคำขออนุมัติไปที่ API
                     axios.patch(`/api/admin/bookings/${bookingId}/status`, {
                             status: 'approved'
                         }, {
                             headers: {
-                                'Authorization': `Bearer ${token}`
+                                'Authorization': `Bearer ${this.authToken}`
                             }
                         })
                         .then(response => {
@@ -716,7 +769,8 @@
                         })
                         .catch(error => {
                             console.error('Error approving booking:', error);
-                            alert('เกิดข้อผิดพลาดในการอนุมัติการจอง');
+                            alert('เกิดข้อผิดพลาดในการอนุมัติการจอง: ' + (error.response?.data
+                                ?.message || 'โปรดลองอีกครั้ง'));
                         });
                 },
 
@@ -727,22 +781,31 @@
                     });
                 },
 
+                showRejectModal(bookingId) {
+                    if (document.querySelector('[x-data="bookingDetailModal()"]').__x) {
+                        let modalComponent = document.querySelector('[x-data="bookingDetailModal()"]')
+                            .__x.$data;
+                        modalComponent.currentBookingId = bookingId;
+                        modalComponent.showModal = true;
+                        modalComponent.loadBookingDetails(bookingId).then(() => {
+                            modalComponent.showRejectForm();
+                        });
+                    }
+                },
+
                 // Pagination
                 get paginationPages() {
                     const pages = [];
                     const maxPagesToShow = 5;
 
                     if (this.totalPages <= maxPagesToShow) {
-                        // ถ้ามีไม่กี่หน้า ให้แสดงทั้งหมด
                         for (let i = 1; i <= this.totalPages; i++) {
                             pages.push(i);
                         }
                     } else {
-                        // แสดงหน้าปัจจุบัน และหน้าข้างเคียง
                         let startPage = Math.max(1, this.currentPage - 2);
                         let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
 
-                        // ปรับหน้าเริ่มต้นใหม่ถ้าจำเป็น
                         if (endPage - startPage + 1 < maxPagesToShow) {
                             startPage = Math.max(1, endPage - maxPagesToShow + 1);
                         }
@@ -753,6 +816,32 @@
                     }
 
                     return pages;
+                },
+
+                get currentPage() {
+                    return this.activeTab === 'pending' ?
+                        this.pendingPage :
+                        this.activeTab === 'approved' ?
+                        this.approvedPage :
+                        this.rejectedPage;
+                },
+
+                set currentPage(value) {
+                    if (this.activeTab === 'pending') {
+                        this.pendingPage = value;
+                    } else if (this.activeTab === 'approved') {
+                        this.approvedPage = value;
+                    } else {
+                        this.rejectedPage = value;
+                    }
+                },
+
+                get totalPages() {
+                    return this.activeTab === 'pending' ?
+                        this.pendingTotalPages :
+                        this.activeTab === 'approved' ?
+                        this.approvedTotalPages :
+                        this.rejectedTotalPages;
                 },
 
                 prevPage() {
@@ -771,18 +860,42 @@
                     this.currentPage = page;
                 },
 
+                get paginatedBookings() {
+                    // ดึงรายการตามสถานะปัจจุบัน
+                    const filteredByStatus = this.filteredBookings.filter(booking =>
+                        booking.bookstatus === this.activeTab
+                    );
+
+                    // คำนวณ index เริ่มต้นและสิ้นสุดสำหรับหน้าปัจจุบัน
+                    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+                    const endIndex = Math.min(startIndex + this.itemsPerPage, filteredByStatus
+                        .length);
+
+                    // ส่งคืนเฉพาะรายการในหน้าปัจจุบัน
+                    return filteredByStatus.slice(startIndex, endIndex);
+                },
+
                 get startItem() {
-                    return this.filteredBookings.length === 0 ? 0 : (this.currentPage - 1) * this
+                    const filteredByStatus = this.filteredBookings.filter(booking =>
+                        booking.bookstatus === this.activeTab
+                    );
+
+                    return filteredByStatus.length === 0 ? 0 : (this.currentPage - 1) * this
                         .itemsPerPage + 1;
                 },
 
                 get endItem() {
-                    return Math.min(this.currentPage * this.itemsPerPage, this.filteredBookings
-                        .length);
+                    const filteredByStatus = this.filteredBookings.filter(booking =>
+                        booking.bookstatus === this.activeTab
+                    );
+
+                    return Math.min(this.currentPage * this.itemsPerPage, filteredByStatus.length);
                 },
 
                 get totalItems() {
-                    return this.filteredBookings.length;
+                    return this.filteredBookings.filter(booking =>
+                        booking.bookstatus === this.activeTab
+                    ).length;
                 },
 
                 // Stats
@@ -813,7 +926,7 @@
 
                 init() {
                     // รับ Custom Events จาก bookingSystem component
-                    this.$root.addEventListener('open-booking-modal', (event) => {
+                    window.addEventListener('open-booking-modal', (event) => {
                         this.openBookingModal(event.detail.bookingId);
                     });
 
@@ -845,6 +958,12 @@
                         .then(response => {
                             this.currentBooking = response.data;
                             this.isLoading = false;
+
+                            // ถ้าสถานะเป็น rejected ให้โหลดเหตุผลที่ปฏิเสธ
+                            if (this.currentBooking.bookstatus === 'rejected') {
+                                this.loadRejectReason(bookingId);
+                            }
+
                             return response.data;
                         })
                         .catch(error => {
@@ -857,8 +976,13 @@
                 },
 
                 loadRejectReason(bookingId) {
+                    const token = localStorage.getItem('admin_token'); // เพิ่ม token ในการเรียก API
                     // ดึงเหตุผลการปฏิเสธจาก cache ผ่าน API
-                    axios.get(`/api/admin/bookings/${bookingId}/reject-reason`)
+                    axios.get(`/api/admin/bookings/${bookingId}/reject-reason`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        })
                         .then(response => {
                             this.rejectReason = response.data.reason || '';
                         })
@@ -937,8 +1061,14 @@
                 approveBooking() {
                     if (!confirm('ต้องการอนุมัติการจองนี้ใช่หรือไม่?')) return;
 
+                    const token = localStorage.getItem('admin_token'); // เพิ่ม token ในการเรียก API
+
                     axios.patch(`/api/admin/bookings/${this.currentBookingId}/status`, {
                             status: 'approved'
+                        }, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
                         })
                         .then(response => {
                             // อัพเดทข้อมูลใน Modal

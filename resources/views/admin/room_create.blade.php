@@ -31,7 +31,7 @@
             </div>
 
             <div class="flex justify-between">
-                <a href="{{ route('admin.dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</a>
+                <a href="{{ route('admin.room.list') }}" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</a>
                 <button type="button" onclick="submitRoom()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create
                     Room</button>
             </div>
@@ -68,7 +68,7 @@
                     console.log("Success:", response.data);
                     document.getElementById('responseMessage').innerText = response.data.message;
                     document.getElementById('responseMessage').classList.remove('hidden');
-                    setTimeout(() => window.location.href = "/admin/dashboard", 2000);
+                    setTimeout(() => window.location.href = "/admin/room_list", 2000);
                 })
                 .catch(error => {
                     console.error("Error:", error.response ? error.response.data : error);

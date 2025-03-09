@@ -6,184 +6,177 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 class AdminBookingController extends Controller
 {
     public function index()
     {
-        $bookings = Booking::all();
+        return view('admin.room_booking');
+    }
 
-        return view('admin.room_booking', [
-            'pendingBookings' => $bookings->where('bookstatus', 'pending'),
-            'approvedBookings' => $bookings->where('bookstatus', 'approved'),
-            'rejectedBookings' => $bookings->where('bookstatus', 'rejected'),
+    /**
+     * ดึงข้อมูลการจองทั้งหมดสำหรับ Admin
+     */
+    public function getBookings()
+    {
+        // "SQLSTATE[42S22]: Column not found: 1054 Unknown column 'users.name' in 'field list' (Connection: mysql, SQL: select `booking`.*, 
+        // `users`.`name` as `username`, `users`.`email` from `booking` inner join `users` on `bookings`.`user_id` = `users`.`id`)"
+        // ดึงข้อมูลทั้งหมดพร้อมความสัมพันธ์
+        $bookings = Booking::with(['room', 'user'])
+            ->select('booking.*', 'users.username as username', 'users.email')
+            ->join('users', 'booking.user_id', '=', 'users.id')
+            ->get()
+            ->map(function ($booking) {
+                // เพิ่มข้อมูลที่จำเป็นสำหรับ frontend
+                return [
+                    'book_id' => $booking->book_id,
+                    'user_id' => $booking->user_id,
+                    'room_id' => $booking->room_id,
+                    'booktitle' => $booking->booktitle,
+                    'bookdetail' => $booking->bookdetail,
+                    'bookstatus' => $booking->bookstatus,
+                    'booktel' => $booking->booktel,
+                    'book_date' => $booking->book_date,
+                    'start_time' => $booking->start_time,
+                    'end_time' => $booking->end_time,
+                    'username' => $booking->username,
+                    'email' => $booking->email,
+                    'room' => $booking->room ? [
+                        'room_id' => $booking->room->room_id,
+                        'room_name' => $booking->room->room_name
+                    ] : null,
+                    'created_at' => $booking->created_at,
+                    'updated_at' => $booking->updated_at
+                ];
+            });
+
+        // จัดกลุ่มตามสถานะเพื่อความสะดวกของ frontend
+        $pendingBookings = $bookings->where('bookstatus', 'pending')->values();
+        $approvedBookings = $bookings->where('bookstatus', 'approved')->values();
+        $rejectedBookings = $bookings->where('bookstatus', 'rejected')->values();
+
+        return response()->json([
+            'pendingBookings' => $pendingBookings,
+            'approvedBookings' => $approvedBookings,
+            'rejectedBookings' => $rejectedBookings,
+            'total' => $bookings->count(),
+            'pendingCount' => $pendingBookings->count(),
+            'approvedCount' => $approvedBookings->count(),
+            'rejectedCount' => $rejectedBookings->count()
         ]);
     }
 
+    /**
+     * ดึงข้อมูลการจองตาม ID
+     */
     public function show($id)
     {
-        $booking = Booking::with('room')->find($id);
+        $booking = Booking::select('booking.*', 'users.username as username', 'users.email')
+            ->join('users', 'booking.user_id', '=', 'users.id')
+            ->where('booking.book_id', $id)
+            ->with('room')
+            ->first();
 
         if (!$booking) {
-            return response()->json(['message' => 'Booking not found'], 404);
+            return response()->json(['message' => 'ไม่พบข้อมูลการจอง'], 404);
         }
+
+        // เข้าถึงข้อมูลเพิ่มเติมหากจำเป็น
+        $booking->room_name = $booking->room->room_name ?? 'ไม่ระบุห้อง';
 
         return response()->json($booking);
     }
 
-    public function approve($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['bookstatus' => 'approved']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking approved successfully',
-            'booking' => $booking
-        ]);
-    }
-
-    public function rejectBooking(Request $request, $id)
-    {
-        $booking = Booking::findOrFail($id);
-
-        // อัปเดตสถานะเป็น rejected
-        $booking->update(['bookstatus' => 'rejected']);
-
-        // เก็บเหตุผลการปฏิเสธใน Session หรือ Cache
-        session()->put("reject_reason_{$booking->id}", $request->reject_reason);
-
-        return redirect()->back()->with('success', 'ปฏิเสธการจองเรียบร้อยแล้ว');
-    }
-
+    /**
+     * อัพเดทสถานะการจอง (อนุมัติ/ปฏิเสธ)
+     */
     public function updateStatus(Request $request, $bookId)
     {
-        $booking = Booking::where('book_id', $bookId)->firstOrFail();
+        $request->validate([
+            'status' => 'required|in:approved,rejected',
+            'reason' => 'nullable|string|required_if:status,rejected'
+        ]);
 
-        $status = $request->input('status');
-        $reason = $request->input('reason', null);  // เผื่อไว้ ถ้าไม่ส่งมาก็เป็น null ได้
+        $booking = Booking::where('book_id', $bookId)->first();
 
-        // อัปเดตสถานะการจอง
-        $booking->update(['bookstatus' => $status]);
-
-        // จัดการเหตุผลการปฏิเสธใน cache
-        if ($status === 'rejected') {
-            cache()->put("booking_{$bookId}_reject_reason", $reason, now()->addDays(7));
-        } else {
-            cache()->forget("booking_{$bookId}_reject_reason");
+        if (!$booking) {
+            return response()->json(['message' => 'ไม่พบข้อมูลการจอง'], 404);
         }
 
-        // เตรียมข้อความแจ้งเตือน
+        $status = $request->input('status');
+        $reason = $request->input('reason');
+
+        // อัพเดทสถานะ
+        $booking->bookstatus = $status;
+        $booking->save();
+
+        // จัดการเหตุผลการปฏิเสธ (เก็บใน Session)
+        if ($status === 'rejected' && $reason) {
+            // สร้าง session key ที่ไม่ซ้ำกันสำหรับแต่ละการจอง
+            $sessionKey = "reject_reason_booking_{$bookId}";
+            Session::put($sessionKey, $reason);
+        } else {
+            Session::forget("reject_reason_booking_{$bookId}");
+        }
+
+        // สร้างการแจ้งเตือนสำหรับผู้ใช้ (ยังคงใช้ Cache)
         $message = match ($status) {
             'approved' => "✅ การจองหมายเลข #{$booking->book_id} ได้รับการอนุมัติแล้ว",
             'rejected' => "❌ การจองหมายเลข #{$booking->book_id} ถูกปฏิเสธ: {$reason}"
         };
 
-        // ดึงแจ้งเตือนเก่ามา (ถ้ามี)
-        $userId = $booking->user_id;
-        $notifications = Cache::get("user_notifications_{$userId}", []);
-
-        // เช็คว่ามีแจ้งเตือนนี้อยู่แล้วหรือยัง ถ้าไม่มีให้เพิ่มใหม่
-        $exists = collect($notifications)->contains(function ($notify) use ($booking, $status) {
-            return $notify['booking_id'] == $booking->book_id && $notify['status'] == $status;
-        });
-
-        if (!$exists) {
-            $notifications[] = [
-                'booking_id' => $booking->book_id,
-                'message' => $message,
-                'status' => $status,   // เพิ่ม key "status" เพื่อให้ frontend ใช้งานง่าย
-                'timestamp' => now()->format('Y-m-d H:i:s')
-            ];
-            Cache::put("user_notifications_{$userId}", $notifications, now()->addDays(2));
-        }
+        $this->addNotificationForUser($booking->user_id, $message, $status, $booking->book_id);
 
         return response()->json([
-            'message' => 'Booking status updated successfully.',
+            'success' => true,
+            'message' => 'อัพเดทสถานะการจองเรียบร้อยแล้ว',
             'booking' => $booking
         ]);
     }
 
-    private function addNotificationToCache($userId, $message)
+    /**
+     * ดึงเหตุผลการปฏิเสธจาก Session
+     */
+    public function getRejectReason($bookId)
+    {
+        $sessionKey = "reject_reason_booking_{$bookId}";
+        $reason = Session::get($sessionKey, '');
+        
+        return response()->json([
+            'reason' => $reason
+        ]);
+    }
+
+    /**
+     * เพิ่มการแจ้งเตือนให้ผู้ใช้ (ยังคงใช้ Cache)
+     */
+    private function addNotificationForUser($userId, $message, $status, $bookingId)
     {
         $cacheKey = "user_notifications_{$userId}";
+        $notifications = Cache::get($cacheKey, []);
 
-        // ดึง notifications เดิมที่มีอยู่
-        $notifications = cache()->get($cacheKey, []);
-
-        // เพิ่มข้อความใหม่เข้าไป
-        $notifications[] = [
-            'message' => $message,
-            'timestamp' => now()->format('Y-m-d H:i:s'),
-        ];
-
-        // อัปเดต cache พร้อมกำหนดอายุ เช่น 1 วัน
-        cache()->put($cacheKey, $notifications, now()->addDay());
-    }
-
-    public function events()
-    {
-        $bookings = Booking::with('room', 'user')->get();
-
-        $events = $bookings->map(function ($booking) {
-            return [
-                'id' => $booking->id,
-                'title' => $booking->title,
-                'start' => $booking->start_time,
-                'end' => $booking->end_time,
-                'extendedProps' => [
-                    'room' => $booking->room->name,
-                    'username' => $booking->user->name,
-                    'booktel' => $booking->booktel,
-                    'bookdetail' => $booking->detail,
-                    'bookstatus' => $booking->status,  // pending, approved, rejected
-                ],
-                'color' => $this->getStatusColor($booking->status)
-            ];
+        // ตรวจสอบว่ามีการแจ้งเตือนนี้อยู่แล้วหรือไม่
+        $exists = collect($notifications)->contains(function ($notify) use ($bookingId, $status) {
+            return $notify['booking_id'] == $bookingId && $notify['status'] == $status;
         });
 
-        return response()->json($events);
-    }
-
-    private function getStatusColor($status)
-    {
-        return match ($status) {
-            'approved' => '#28a745',
-            'pending' => '#ffc107',
-            'rejected' => '#dc3545',
-            default => '#6c757d',
-        };
-    }
-
-    public function getEvents()
-    {
-        $bookings = Booking::with('room', 'user')->get();
-
-        $events = $bookings->map(function ($booking) {
-            return [
-                'id' => $booking->id,
-                'title' => $booking->booktitle,
-                'start' => "{$booking->book_date}T{$booking->start_time}",
-                'end' => "{$booking->book_date}T{$booking->end_time}",
-                'extendedProps' => [
-                    'room' => $booking->room->room_name ?? 'ไม่ระบุ',
-                    'username' => $booking->user->name ?? '-',
-                    'booktel' => $booking->booktel,
-                    'bookdetail' => $booking->bookdetail,
-                    'bookstatus' => $booking->bookstatus,
-                ],
-                'color' => match ($booking->bookstatus) {
-                    'approved' => '#4CAF50',
-                    'pending' => '#FFC107',
-                    'rejected' => '#F44336',
-                    default => '#9E9E9E',
-                }
+        if (!$exists) {
+            $notifications[] = [
+                'booking_id' => $bookingId,
+                'message' => $message,
+                'status' => $status,
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+                'is_read' => false
             ];
-        });
 
-        return response()->json($events);
+            Cache::put($cacheKey, $notifications, now()->addDays(7));
+        }
     }
 
+    /**
+     * ดึงแนบนบ Calendar
+     */
     public function calendar()
     {
         $pendingCount = Booking::where('bookstatus', 'pending')->count();
@@ -191,5 +184,37 @@ class AdminBookingController extends Controller
         $rejectedCount = Booking::where('bookstatus', 'rejected')->count();
 
         return view('admin.calendar', compact('pendingCount', 'approvedCount', 'rejectedCount'));
+    }
+
+    /**
+     * ดึงข้อมูลเหตุการณ์สำหรับปฏิทิน
+     */
+    public function getEvents()
+    {
+        $bookings = Booking::with('room', 'user')->get();
+
+        $events = $bookings->map(function ($booking) {
+            return [
+                'id' => $booking->book_id,
+                'title' => $booking->booktitle,
+                'start' => "{$booking->book_date}T{$booking->start_time}",
+                'end' => "{$booking->book_date}T{$booking->end_time}",
+                'extendedProps' => [
+                    'room' => $booking->room ? $booking->room->room_name : 'ไม่ระบุ',
+                    'username' => $booking->user ? $booking->user->name : 'ไม่ระบุ',
+                    'booktel' => $booking->booktel,
+                    'bookdetail' => $booking->bookdetail,
+                    'bookstatus' => $booking->bookstatus,
+                ],
+                'color' => match ($booking->bookstatus) {
+                    'approved' => '#4CAF50',  // เขียว
+                    'pending' => '#FFC107',   // เหลือง
+                    'rejected' => '#F44336',  // แดง
+                    default => '#9E9E9E',     // เทา
+                }
+            ];
+        });
+
+        return response()->json($events);
     }
 }
