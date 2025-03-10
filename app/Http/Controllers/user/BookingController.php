@@ -62,20 +62,14 @@ class BookingController extends Controller
             $startTimestamp = Carbon::createFromFormat('H:i', $start);
             $endTimestamp = Carbon::createFromFormat('H:i', $validated['end_time'][$index]);
 
-            // เช็คเวลาสิ้นสุดต้องมากกว่าเวลาที่เริ่มต้น
+            // เช็คเวลา
             if ($endTimestamp <= $startTimestamp) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")"
-                ], 422);
+                return redirect()->back()->with('error', "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")");
             }
 
-            // เช็คว่าเวลาที่จองต้องอยู่ในช่วงเวลาที่กำหนด
+            // เช็คเวลาจอง
             if ($startTimestamp < $openingTime || $endTimestamp > $closingTime) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "เวลาจองต้องอยู่ในช่วง 07:00 - 18:00 (จุดที่ " . ($index + 1) . ")"
-                ], 422);
+                return redirect()->back()->with('error', "เวลาจองต้องอยู่ในช่วง 07:00 - 18:00 (จุดที่ " . ($index + 1) . ")");
             }
         }
 
@@ -88,8 +82,8 @@ class BookingController extends Controller
             $existingBooking = Booking::where('room_id', $validated['room_id'])
                 ->whereDate('book_date', $book_date)
                 ->where(function ($query) use ($start_time, $end_time) {
-                    $query->whereBetween('start_time', [$start_time, $end_time])
-                        ->orWhereBetween('end_time', [$start_time, $end_time])
+                    $query->whereRaw('? BETWEEN start_time AND end_time', [$start_time])
+                        ->orWhereRaw('? BETWEEN start_time AND end_time', [$end_time])
                         ->orWhere(function ($query) use ($start_time, $end_time) {
                             $query->where('start_time', '<', $end_time)
                                 ->where('end_time', '>', $start_time);
@@ -97,12 +91,11 @@ class BookingController extends Controller
                 })
                 ->exists();
 
+
             // ถ้าพบการจองที่ทับซ้อน
+            // ตรวจสอบการทับซ้อน
             if ($existingBooking) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "ห้องนี้ถูกจองแล้วในวันที่ " . $book_date . " กรุณาลองเลือกวันที่อื่น"
-                ], 422);
+                return redirect()->back()->with('error', 'ห้องนี้ถูกจองแล้วในวันที่ ' . $book_date . ' กรุณาลองเลือกวันที่อื่น');
             }
         }
 
@@ -161,14 +154,13 @@ class BookingController extends Controller
                 );
             }
             DB::commit();
-
             // ถ้าเรียกจาก API, ส่ง response เป็น JSON
             if (request()->wantsJson()) {
                 return response()->json(['message' => 'การจองสำเร็จ!']);
             }
-
-            // ถ้าเรียกจาก Web, ส่งกลับไปยังหน้าแสดงผล
-            return redirect()->route('room.show', ['roomId' => $validated['room_id']])->with('success', 'การจองสำเร็จ!');
+            // ตัวอย่างการส่งข้อมูลที่จองสำเร็จ
+            return redirect()->route('room.show', ['roomId' => $validated['room_id']])
+                ->with('success', 'การจองสำเร็จ!');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error("Booking Error: " . $e->getMessage());
@@ -182,8 +174,6 @@ class BookingController extends Controller
             return redirect()->back()->withErrors(['message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล']);
         }
     }
-
-
 
     public function calendar()
     {

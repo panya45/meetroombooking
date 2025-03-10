@@ -166,8 +166,8 @@
 
                                         </div>
                                         <div class="mb-4">
-                                            <label for="bookstatus"
-                                                class="block text-sm font-bold mb-1" >สถานะการจอง</label>
+                                            {{-- <label for="bookstatus"
+                                                class="block text-sm font-bold mb-1" >สถานะการจอง</label> --}}
 
                                             <!-- Placeholder สำหรับแสดงสถานะการจอง -->
                                             <input type="text" id="bookstatus"
@@ -186,8 +186,9 @@
                                     <p id="success-message" class="text-green-500 text-sm mt-4 hidden">จองห้องสำเร็จ!</p>
                                 </div>
                             </div>
-                        </div><!-- Success Modal -->
-                        <div id="success-modal" class="modal fixed inset-0 flex items-center justify-center z-50 hidden">
+                        </div>
+                        <!-- Success Modal -->
+                        {{-- <div id="success-modal" class="modal fixed inset-0 flex items-center justify-center z-50 hidden">
                             <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
                                 <h3 class="text-xl font-bold mb-4">จองห้องสำเร็จ!</h3>
                                 <p class="text-green-500">การจองของคุณเสร็จสมบูรณ์แล้ว</p>
@@ -200,7 +201,7 @@
                                 <button id="close-modal-btn" @click="openBookingModal = false"
                                     class="bg-red-500 text-white px-4 py-2 rounded mt-4">ปิด</button>
                             </div>
-                        </div>
+                        </div> --}}
                         <!-- End of Booking Button and Modal -->
                         <div class="mt-6">
                             <a href="{{ route('rooms.index') }}"
@@ -236,44 +237,80 @@
         </div>
     @endsection
 </body>
-@if (session('success'))
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // เช็คว่าใน session มีค่าการจองสำเร็จหรือไม่
+        @if (session('success'))
             Swal.fire({
                 title: 'สำเร็จ!',
-                text: '{{ session('success') }}',
+                text: `{!! session('success') !!}`,
                 icon: 'success',
                 confirmButtonText: 'ตกลง'
+            }).then(() => {
+                // ปิด Modal และรีโหลดหน้า
+                @this.openBookingModal = false;
+                window.location.reload(); // หรือใช้ window.location.href เพื่อไปหน้าใหม่
             });
-        });
-    </script>
-@endif
+        @endif
 
-@if (session('error'))
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        // เช็คว่าใน session มีข้อผิดพลาดหรือไม่
+        @if (session('error'))
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด!',
-                text: '{{ session('error') }}',
+                text: `{!! session('error') !!}`,
                 icon: 'error',
                 confirmButtonText: 'ตกลง'
             });
-        });
-    </script>
-@endif
+        @endif
+    });
 
-@if ($errors->any())
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            Swal.fire({
-                title: 'พบข้อผิดพลาด!',
-                html: `{!! implode('<br>', $errors->all()) !!}`,
-                icon: 'error',
-                confirmButtonText: 'ตกลง'
+    // การส่งข้อมูลจากฟอร์ม
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+        e.preventDefault(); // ป้องกันการ Submit ปกติ
+
+        let formData = new FormData(this);
+        document.querySelector('button[type="submit"]').disabled = true;
+
+        fetch("{{ route('booking.store') }}", {
+                method: "POST",
+                body: formData, // ใช้ FormData
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
+                }
+            })
+            .then(response => {
+                // ตรวจสอบการตอบกลับเป็น JSON หรือไม่
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                // แสดง SweetAlert ถ้าจองสำเร็จ
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: data.message, // ใช้ข้อความที่ส่งจาก Controller
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง'
+                }).then(() => {
+                    // ปิด Modal และรีโหลดหน้า
+                    @this.openBookingModal = false;
+                    window.location.reload(); // หรือใช้ window.location.href เพื่อไปหน้าใหม่
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด!',
+                    text: error.message || 'ไม่สามารถทำรายการได้ กรุณาลองใหม่',
+                    icon: 'error',
+                    confirmButtonText: 'ตกลง'
+                });
             });
-        });
-    </script>
-@endif
+    });
+</script>
+
 <script>
     // ดึงข้อมูลสถานะการจองจาก API
     fetch(`/api/booking-status/${roomId}`) // ปรับ URL ให้ตรงกับ API ของคุณ
@@ -316,7 +353,7 @@
             console.error('Error fetching booking status:', error);
         });
 </script>
-
+{{--
 <script>
     // Check if there is a success session and show modal if necessary
     @if (session('success'))
@@ -335,7 +372,7 @@
     document.getElementById('view-details-btn')?.addEventListener('click', function() {
         window.location.href = '{{ route('booking.show', ['booking_id' => $room->id]) }}';
     });
-</script>
+</script> --}}
 {{-- <script>
     document.getElementById('booking-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form from submitting normally
@@ -372,40 +409,7 @@
             });
     });
 </script> --}}
-<script>
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-        e.preventDefault(); // ป้องกันการ Submit ปกติ
 
-        let formData = new FormData(this);
-        let successMessage = document.getElementById('success-message');
-        let errorMessages = document.querySelectorAll('.error-message');
-
-        // เคลียร์ข้อความ Error เดิม
-        errorMessages.forEach(el => el.textContent = "");
-
-        fetch("{{ route('booking.store') }}", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                        'content'),
-                    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.text()) // อ่านเป็นข้อความก่อน
-            .then(text => JSON.parse(text)) // แปลงกลับเป็น JSON
-            .then(data => {
-                if (data.success) {
-                    successMessage.textContent = data.message; // แสดงข้อความสำเร็จ
-                    successMessage.classList.remove('hidden');
-                } else {
-                    alert(data.message); // แสดงข้อผิดพลาด
-                }
-            })
-            .catch(error => console.error("Error:", error));
-    });
-</script>
 <script>
     // JavaScript สำหรับการเพิ่มฟอร์มการจองเพิ่มเติม
     document.getElementById('add-booking-slot').addEventListener('click', function() {
