@@ -69,7 +69,7 @@ class BookingController extends Controller
             $startTimestamp = Carbon::createFromFormat('H:i', $start);
             $endTimestamp = Carbon::createFromFormat('H:i', $validated['end_time'][$index]);
 
-            // เช็คเวลาสิ้นสุดต้องมากกว่าเวลาที่เริ่มต้น
+            // เช็คเวลา
             if ($endTimestamp <= $startTimestamp) {
                 return response()->json([
                     'success' => false,
@@ -77,7 +77,7 @@ class BookingController extends Controller
                 ], 422)->header('Content-Type', 'application/json');
             }
 
-            // เช็คว่าเวลาที่จองต้องอยู่ในช่วงเวลาที่กำหนด
+            // เช็คเวลาจอง
             if ($startTimestamp < $openingTime || $endTimestamp > $closingTime) {
                 return response()->json([
                     'success' => false,
@@ -95,8 +95,8 @@ class BookingController extends Controller
             $existingBooking = Booking::where('room_id', $validated['room_id'])
                 ->whereDate('book_date', $book_date)
                 ->where(function ($query) use ($start_time, $end_time) {
-                    $query->whereBetween('start_time', [$start_time, $end_time])
-                        ->orWhereBetween('end_time', [$start_time, $end_time])
+                    $query->whereRaw('? BETWEEN start_time AND end_time', [$start_time])
+                        ->orWhereRaw('? BETWEEN start_time AND end_time', [$end_time])
                         ->orWhere(function ($query) use ($start_time, $end_time) {
                             $query->where('start_time', '<', $end_time)
                                 ->where('end_time', '>', $start_time);
@@ -104,7 +104,9 @@ class BookingController extends Controller
                 })
                 ->exists();
 
+
             // ถ้าพบการจองที่ทับซ้อน
+            // ตรวจสอบการทับซ้อน
             if ($existingBooking) {
                 return response()->json([
                     'success' => false,

@@ -24,10 +24,10 @@
         </div>
         <div class="max-w-6xl mx-auto my-6">
             <h2 class="text-2xl font-bold text-center mb-6">รายการห้องประชุม</h2>
-            <div class="mb-4 text-center">
+            {{-- <div class="mb-4 text-center">
                 <input type="text" id="searchInput" class="px-4 py-2 border rounded-lg" placeholder="ค้นหาห้องประชุม..."
                     onkeyup="searchRooms()">
-            </div>
+            </div> --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 @foreach ($room_data as $room)
