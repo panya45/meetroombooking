@@ -1,47 +1,67 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!-- resources/views/auth/login.blade.php -->
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+<!DOCTYPE html>
+<html lang="en">
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+</head>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+<body class="bg-gray-100">
+    <div class="flex justify-center items-center min-h-screen px-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg sm:w-[40rem] md:w-[48rem]">
+            <div class="flex justify-center">
+                <img src="images/logo-meetroom-booking-Photoroom.png"
+                    class="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 mx-auto">
+            </div>
+            <h2 class="text-2xl font-semibold text-center text-gray-700 mb-6">Login</h2>
+            <form action="{{ route('login') }}" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" placeholder="example123@gmail.com" required
+                        class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Password</label>
+                    <input type="password" id="password" name="password" placeholder="*********" required
+                        class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                </div>
+                <div class="flex flex-col items-center justify-center gap-4 p-6">
+                    <button type="submit"
+                        class="w-full sm:w-1/2 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-gray-500">
+                        เข้าสู่ระบบ
+                    </button>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
+                    <div class="flex items-center gap-2">
+                        <p class="text-gray-600">กรณีถ้าคุณยังไม่เป็นสมัครสมาชิกให้คลิกที่</p>
+                        <a href="{{ url('register') }}" class="text-red-600 font-semibold">
+                            สมัครสมาชิก
+                        </a>
+                    </div>
+                </div>
+            </form>
+            <div class="flex flex-col items-center justify-center gap-">
+                <p class="text-gray-600">หรือถ้าต้องเข้าสู่ระบบหรือสมัครสมาชิกผ่านGoogleให้คลิกที่</p>
+            </div>
+            <div class="mt-6">
+                <a href="{{ url('auth/google') }}"
+                    class="w-full py-2 px-4 text-black font-semibold rounded-lg flex items-center justify-center gap-4
+                           border-2 border-solid transition delay-100 duration-250 ease-in-out hover:bg-gray-300 shadow-lg">
+                    <img src="images/google-logo.png" alt="Google Logo" class="w-5 h-5">
+                    Login with Google
                 </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+            </div>
         </div>
-    </form>
-</x-guest-layout>
+    </div>
+</body>
+
+
+</html>

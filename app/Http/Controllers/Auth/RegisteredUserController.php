@@ -1,51 +1,63 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use App\Models\User;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
-    public function create(): View
+    public function showRegistrationForm()
     {
         return view('auth.register');
+
+    }
+    protected function redirectTo()
+    {
+        return '/rooms';
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function store(Request $request): RedirectResponse
+    public function Register(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $fields = $request->validate([
+            'username' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed'
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'username' => $fields['username'],
+            'email' => $fields['email'],
+            'password' => Hash::make($fields['password']),
         ]);
 
-        event(new Registered($user));
+        $token = $user->createToken($user->username);
 
-        Auth::login($user);
+        session(['user_token' => $token->plainTextToken]);
+        return redirect('/rooms');
+    }
 
-        return redirect(RouteServiceProvider::HOME);
+    public function Login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users',
+            'password' => 'required'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return ['message' => 'The credentials are incorrect.'];
+        }
+
+        $token = $user->createToken($user->username);
+        return ['user' => $user, 'token' => $token->plainTextToken];
+    }
+
+    public function Logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return ['message' => 'You are logged out.'];
     }
 }
