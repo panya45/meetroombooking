@@ -2,7 +2,7 @@
 
 @section('content')
     @include('layouts.navigation')
-    <div class="container mx-auto mt-5 p-6 bg-white shadow rounded" x-data="bookingSystem()">
+    <div class="container mx-auto mt-32 p-6 bg-white shadow rounded" x-data="bookingSystem()">
         <!-- Tab navigation -->
         <div class="mb-6">
             <div class="flex border-b">
@@ -102,8 +102,7 @@
                 <div class="p-3 flex">
                     <!-- Room image -->
                     <div class="w-64 h-40 bg-gray-200 mr-4 rounded overflow-hidden">
-                        <img :src="'/storage/rooms/' + booking.room_pic" alt="ภาพห้องประชุม"
-                            class="w-full h-full object-cover"
+                        <img :src="'/storage/' + booking.room_pic" alt="ภาพห้องประชุม" class="w-full h-full object-cover"
                             onerror="this.onerror=null; this.src='/img/default-room.jpg';">
                     </div>
 
@@ -274,65 +273,7 @@
                                 </div>
                             </div>
 
-                            <!-- รูปภาพห้องประชุม -->
-                            <div>
-                                <h4 class="text-base font-medium text-gray-700 mb-3">รูปภาพห้องประชุม</h4>
 
-                                <!-- รูปภาพหลัก -->
-                                <div x-data="{
-                                    activeImage: 0,
-                                    images: [
-                                        '/storage/rooms/' + selectedBooking.room_pic,
-                                        '/img/meeting-room-1.jpg',
-                                        '/img/meeting-room-2.jpg',
-                                        '/img/meeting-room-3.jpg'
-                                    ]
-                                }" class="space-y-3">
-                                    <div
-                                        class="relative bg-gray-100 rounded-lg overflow-hidden h-64 flex items-center justify-center">
-                                        <template x-for="(image, index) in images" :key="index">
-                                            <div x-show="activeImage === index" class="absolute inset-0">
-                                                <img :src="image" :alt="'ภาพห้องประชุม ' + (index + 1)"
-                                                    class="w-full h-full object-cover"
-                                                    onerror="this.src='/img/default-room.jpg'; this.onerror=null;">
-
-                                                <!-- ปุ่มนำทาง -->
-                                                <div class="absolute inset-0 flex items-center justify-between p-2">
-                                                    <button
-                                                        @click="activeImage = (activeImage - 1 + images.length) % images.length"
-                                                        class="bg-black bg-opacity-50 hover:bg-opacity-75 rounded-full p-1 text-white">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2" d="M15 19l-7-7 7-7" />
-                                                        </svg>
-                                                    </button>
-                                                    <button @click="activeImage = (activeImage + 1) % images.length"
-                                                        class="bg-black bg-opacity-50 hover:bg-opacity-75 rounded-full p-1 text-white">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2" d="M9 5l7 7-7 7" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    <!-- ตัวเลือกรูปภาพ (thumbnails) -->
-                                    <div class="flex space-x-2 overflow-x-auto pb-2">
-                                        <template x-for="(image, index) in images" :key="index">
-                                            <button @click="activeImage = index"
-                                                :class="{ 'ring-2 ring-blue-500': activeImage === index }"
-                                                class="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
-                                                <img :src="image" :alt="'ภาพห้องประชุมขนาดเล็ก ' + (index + 1)"
-                                                    class="w-full h-full object-cover">
-                                            </button>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -340,7 +281,7 @@
                 <!-- ส่วนท้าย Modal -->
                 <div class="px-6 py-4 bg-gray-50 border-t flex justify-between">
                     <!-- ปุ่มยกเลิกการจอง (แสดงเฉพาะเมื่อสถานะเป็น pending) -->
-                    <div>
+                    {{-- <div>
                         <button x-show="selectedBooking.bookstatus === 'pending'"
                             @click="cancelBooking(selectedBooking.book_id)"
                             class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-md font-medium">
@@ -357,7 +298,7 @@
                             class="bg-red-200 text-red-800 px-4 py-2.5 rounded-md font-medium cursor-not-allowed">
                             สถานะ: ถูกปฏิเสธ
                         </button>
-                    </div>
+                    </div> --}}
 
                     <!-- ปุ่มปิด Modal -->
                     <button @click="close()"

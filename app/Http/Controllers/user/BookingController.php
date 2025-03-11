@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 
 use function PHPUnit\Framework\returnSelf;
 
@@ -19,6 +20,12 @@ class BookingController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+    }
+
+    public function index()
+    {
+        // ส่งข้อมูลส่วนหัวไปยัง view
+        return view('user.myBookings');
     }
 
     // Method สำหรับแสดงข้อมูลการจอง (สามารถทำงานทั้ง Web และ API)
@@ -64,12 +71,18 @@ class BookingController extends Controller
 
             // เช็คเวลา
             if ($endTimestamp <= $startTimestamp) {
-                return redirect()->back()->with('error', "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")");
+                return response()->json([
+                    'success' => false,
+                    'message' => "เวลาสิ้นสุดต้องมากกว่าที่เริ่มต้น (จุดที่ " . ($index + 1) . ")"
+                ], 422)->header('Content-Type', 'application/json');
             }
 
             // เช็คเวลาจอง
             if ($startTimestamp < $openingTime || $endTimestamp > $closingTime) {
-                return redirect()->back()->with('error', "เวลาจองต้องอยู่ในช่วง 07:00 - 18:00 (จุดที่ " . ($index + 1) . ")");
+                return response()->json([
+                    'success' => false,
+                    'message' => "เวลาจองต้องอยู่ในช่วง 07:00 - 18:00 (จุดที่ " . ($index + 1) . ")"
+                ], 422)->header('Content-Type', 'application/json');
             }
         }
 
@@ -95,14 +108,17 @@ class BookingController extends Controller
             // ถ้าพบการจองที่ทับซ้อน
             // ตรวจสอบการทับซ้อน
             if ($existingBooking) {
-                return redirect()->back()->with('error', 'ห้องนี้ถูกจองแล้วในวันที่ ' . $book_date . ' กรุณาลองเลือกวันที่อื่น');
+                return response()->json([
+                    'success' => false,
+                    'message' => "ห้องนี้ถูกจองแล้วในวันที่ " . $book_date . " กรุณาลองเลือกวันที่อื่น"
+                ], 422)->header('Content-Type', 'application/json');
             }
         }
 
-        // ข้อมูลการจอง
-        $booking = [];
+        // เตรียมข้อมูลการจอง (สร้างครั้งเดียว)
+        $bookingData = [];
         foreach ($validated['book_date'] as $index => $book_date) {
-            $booking[] = [
+            $bookingData[] = [
                 'user_id'   => auth()->id(),
                 'room_id'   => $validated['room_id'],
                 'booktitle' => $validated['booktitle'],
@@ -120,26 +136,10 @@ class BookingController extends Controller
         // บันทึกข้อมูลการจอง
         DB::beginTransaction();
         try {
-            // บันทึกข้อมูลการจอง
-            $booking = [];
-            foreach ($validated['book_date'] as $index => $book_date) {
-                $booking[] = [
-                    'user_id' => auth()->id(),
-                    'room_id' => $validated['room_id'],
-                    'booktitle' => $validated['booktitle'],
-                    'bookdetail' => $validated['bookdetail'],
-                    'booktel' => $validated['booktel'],
-                    'username' => auth()->user()->username,
-                    'email' => auth()->user()->email,
-                    'book_date' => $book_date,
-                    'start_time' => $validated['start_time'][$index],
-                    'end_time' => $validated['end_time'][$index],
-                    'bookstatus' => 'pending',
-                ];
-            }
-
-            foreach ($booking as $data) {
+            $createdBookings = [];
+            foreach ($bookingData as $data) {
                 $createdBooking = Booking::create($data);
+                $createdBookings[] = $createdBooking;
 
                 // ใช้ AdminNotificationController::addNotification เพื่อเพิ่มการแจ้งเตือน
                 \App\Http\Controllers\Admin\AdminNotificationController::addNotification(
@@ -154,24 +154,40 @@ class BookingController extends Controller
                 );
             }
             DB::commit();
-            // ถ้าเรียกจาก API, ส่ง response เป็น JSON
-            if (request()->wantsJson()) {
-                return response()->json(['message' => 'การจองสำเร็จ!']);
+
+            // ตรวจสอบประเภทของ request อย่างชัดเจน
+            $isApiRequest = $request->wantsJson() || $request->ajax() || $request->expectsJson();
+
+            // สำหรับ API หรือ AJAX request
+            if ($isApiRequest) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'จองห้องสำเร็จ!',
+                    'bookings' => $createdBookings
+                ])->header('Content-Type', 'application/json');
             }
-            // ตัวอย่างการส่งข้อมูลที่จองสำเร็จ
-            return redirect()->route('room.show', ['roomId' => $validated['room_id']])
-                ->with('success', 'การจองสำเร็จ!');
+
+            // สำหรับ Web request
+            return redirect()->route('user.myBooking')->with('success', 'จองห้องสำเร็จ!');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error("Booking Error: " . $e->getMessage());
 
-            // ส่งข้อผิดพลาดสำหรับ API
-            if (request()->wantsJson()) {
-                return response()->json(['error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'], 500);
+            // ใช้ตัวแปรเดียวกันกับในบล็อก try เพื่อความสอดคล้อง
+            $isApiRequest = $request->wantsJson() || $request->ajax() || $request->expectsJson();
+
+            // สำหรับ API หรือ AJAX request
+            if ($isApiRequest) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage()
+                ], 500)->header('Content-Type', 'application/json');
             }
 
-            // ส่งข้อผิดพลาดสำหรับ Web
-            return redirect()->back()->withErrors(['message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล']);
+            // สำหรับ Web request
+            return redirect()->back()
+                ->withErrors(['message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'])
+                ->withInput();
         }
     }
 
@@ -181,7 +197,6 @@ class BookingController extends Controller
         return view('user.calendar', compact('room_data'));
     }
 
-    // เพิ่มฟังก์ชันนี้ใน BookingController.php
     public function getUserBookings()
     {
         try {
@@ -272,24 +287,22 @@ class BookingController extends Controller
     public function myBookings(Request $request)
     {
         $userId = auth()->id();
-        $bookings = Booking::where('user_id', auth()->id())->get();
-
-        // ตรวจสอบว่าได้ข้อมูลการจองหรือไม่
-        if ($bookings->isEmpty()) {
-            // ถ้าไม่มีการจอง ให้ส่งข้อความหรือข้อมูลที่เกี่ยวข้อง
-            return response()->json(['message' => 'ไม่มีการจองสำหรับผู้ใช้นี้'], 404);
-        }
+        $bookings = Booking::where('user_id', $userId)
+            ->with(['room']) // Eager load room relationship
+            ->orderBy('book_date', 'desc') // Sort by date
+            ->get();
 
         $notifications = Cache::get("user_notifications_{$userId}", []);
 
         // ตรวจสอบว่าเรียกจาก Web หรือ API
-        if (request()->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'bookings' => $bookings,
                 'notifications' => $notifications
             ]);
         }
 
+        // ส่ง view พร้อมกับข้อมูลเสมอ แม้จะไม่มีข้อมูลการจอง
         return view('user.myBooking', compact('bookings', 'notifications'));
     }
 
@@ -307,10 +320,20 @@ class BookingController extends Controller
         return response()->json($rooms); // ใช้ response เป็น JSON สำหรับ API
     }
 
-    public function getRejectReason($booking_id)
+    public function getRejectReason($bookingId)
     {
-        $reason = cache()->get("booking_{$booking_id}_reject_reason", 'ไม่มีข้อมูล');
-        return response()->json(['reject_reason' => $reason]);
+        $booking = Booking::where('book_id', $bookingId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$booking || $booking->bookstatus !== 'rejected') {
+            return response()->json(['reject_reason' => 'ไม่พบข้อมูล'], 404);
+        }
+
+        // ดึงเหตุผลจาก session หรือจากฐานข้อมูล (ขึ้นอยู่กับการออกแบบของคุณ)
+        $rejectReason = session("reject_reason_booking_{$bookingId}") ?? 'ไม่ระบุเหตุผล';
+
+        return response()->json(['reject_reason' => $rejectReason]);
     }
 
     public function getNotifications()

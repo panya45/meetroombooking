@@ -569,7 +569,7 @@
                 pendingPage: 1,
                 approvedPage: 1,
                 rejectedPage: 1,
-                itemsPerPage: 5, // ลดจำนวนรายการต่อหน้าลงเพื่อให้เห็นการทำงานของ pagination
+                itemsPerPage: 20, // ลดจำนวนรายการต่อหน้าลงเพื่อให้เห็นการทำงานของ pagination
 
                 // ตัวแปรสำหรับเก็บข้อมูล pagination แยกตาม tab
                 pendingTotalPages: 1,
