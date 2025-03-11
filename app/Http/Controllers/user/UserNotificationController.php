@@ -1,86 +1,83 @@
 <?php
 
-namespace App\Http\Controllers\user;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class UserNotificationController extends Controller
 {
+    // Cache จะหมดอายุใน 7 วัน
+    private $cacheTTL = 60 * 24 * 7;
 
-    //  ดึงข้อมูลแจ้งเตือนสำหรับผู้ใช้ปัจจุบัน
+    /**
+     * ดึงรายการแจ้งเตือนทั้งหมดของ User
+     */
     public function getUserNotifications(Request $request)
     {
-        $userId = auth()->id();
-        $cacheKey = "notifications:user:{$userId}";
+        $userId = Auth::id();
+        $cacheKey = "user_notifications_{$userId}";
 
-        // ดึงข้อมูลจาก Cache
+        // ดึงการแจ้งเตือนจาก Cache
         $notifications = Cache::get($cacheKey, []);
 
-        return response()->json($notifications);
+        // นับจำนวนการแจ้งเตือนทั้งหมด
+        $notificationCount = count($notifications);
+
+        return response()->json([
+            'notifications' => $notifications,
+            'notification_count' => $notificationCount
+        ]);
     }
 
-
-    //   ลบแจ้งเตือนเฉพาะรายการ
+    /**
+     * ลบการแจ้งเตือน
+     */
     public function removeNotification(Request $request, $index)
     {
-        $userId = auth()->id();
-        $cacheKey = "notifications:user:{$userId}";
-
-        // ดึงข้อมูลจาก Cache
+        $userId = Auth::id();
+        $cacheKey = "user_notifications_{$userId}";
         $notifications = Cache::get($cacheKey, []);
 
-        // ลบรายการที่ต้องการ (หากมี)
-        if (isset($notifications[$index])) {
+        // กรณีที่ $index เป็น integer (index จริงๆ ใน array)
+        if (is_numeric($index) && isset($notifications[$index])) {
             array_splice($notifications, $index, 1);
-            Cache::put($cacheKey, $notifications, now()->addDays(7)); // ตั้งค่า TTL
+        }
+        // กรณีที่ $index เป็น id หรือค่าอื่น
+        else {
+            foreach ($notifications as $i => $notification) {
+                if (isset($notification['booking_id']) && $notification['booking_id'] == $index) {
+                    array_splice($notifications, $i, 1);
+                    break;
+                }
+            }
         }
 
-        return response()->json(['success' => true]);
+        // อัพเดท cache
+        Cache::put($cacheKey, $notifications, $this->cacheTTL);
+
+        return response()->json([
+            'success' => true,
+            'notification_count' => count($notifications)
+        ]);
     }
 
-    //   ลบแจ้งเตือนทั้งหมดของผู้ใช้
+    /**
+     * ล้างการแจ้งเตือนทั้งหมด
+     */
     public function clearAllNotifications(Request $request)
     {
-        $userId = auth()->id();
-        $cacheKey = "notifications:user:{$userId}";
+        $userId = Auth::id();
+        $cacheKey = "user_notifications_{$userId}";
 
-        // ลบทั้งหมดโดยการเคลียร์ Cache
+        // ล้าง cache
         Cache::forget($cacheKey);
 
-        return response()->json(['success' => true]);
-    }
-
-    //  สร้างแจ้งเตือนใหม่
-    public function createNotification($userId, $message, $type, $data = [])
-    {
-        $cacheKey = "notifications:user:{$userId}";
-
-        // ดึงข้อมูลแจ้งเตือนปัจจุบัน
-        $notifications = Cache::get($cacheKey, []);
-
-        // สร้างแจ้งเตือนใหม่
-        $newNotification = [
-            'message' => $message,
-            'type' => $type, // 'booking_approved', 'booking_rejected', 'booking_cancelled'
-            'data' => $data,
-            'timestamp' => Carbon::now()->format('d/m/Y H:i'),
-            'read' => false
-        ];
-
-        // เพิ่มที่ตำแหน่งเริ่มต้นของ array (แจ้งเตือนล่าสุดอยู่บนสุด)
-        array_unshift($notifications, $newNotification);
-
-        // จำกัดจำนวนแจ้งเตือน (เก็บแค่ 20 รายการล่าสุด)
-        if (count($notifications) > 20) {
-            $notifications = array_slice($notifications, 0, 20);
-        }
-
-        // เก็บลง Cache พร้อมตั้งเวลาหมดอายุ
-        Cache::put($cacheKey, $notifications, now()->addDays(7));
-
-        return true;
+        return response()->json([
+            'success' => true,
+            'message' => 'ล้างการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว'
+        ]);
     }
 }

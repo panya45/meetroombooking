@@ -224,7 +224,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    updateRoom(); // เรียกฟังก์ชัน updateRoom โดยไม่ส่งพารามิเตอร์
+                    submitRoom(); // เรียกฟังก์ชัน updateRoom โดยไม่ส่งพารามิเตอร์
                 }
             });
         }

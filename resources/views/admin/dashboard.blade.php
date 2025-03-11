@@ -133,7 +133,7 @@
                     </div>
                 </div>
                 <div class="mt-4">
-                    <a href="/admin/bookings?tab=pending"
+                    <a href="/admin/room_booking"
                         class="text-sm text-yellow-500 hover:text-yellow-700 flex items-center">
                         <span>จัดการการจอง</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none"
@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 <div class="mt-4">
-                    <a href="/admin/bookings?tab=approved"
+                    <a href="/admin/room_booking"
                         class="text-sm text-green-500 hover:text-green-700 flex items-center">
                         <span>ดูการจองที่อนุมัติ</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none"
@@ -186,7 +186,7 @@
                         <p class="text-2xl font-bold text-gray-800" x-text="stats.totalUsers">0</p>
                     </div>
                 </div>
-                <div class="mt-4">
+                {{-- <div class="mt-4">
                     <a href="/admin/users" class="text-sm text-purple-500 hover:text-purple-700 flex items-center">
                         <span>จัดการผู้ใช้</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none"
@@ -194,7 +194,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
-                </div>
+                </div> --}}
             </div>
         </div>
 
@@ -205,7 +205,7 @@
                 <div class="bg-white rounded-lg shadow-md mb-6">
                     <div class="border-b px-6 py-4 flex justify-between items-center">
                         <h3 class="text-lg font-semibold text-gray-800">กิจกรรมการจองล่าสุด</h3>
-                        <a href="/admin/bookings" class="text-sm text-blue-500 hover:text-blue-700">ดูทั้งหมด</a>
+                        <a href="/admin/room_booking" class="text-sm text-blue-500 hover:text-blue-700">ดูทั้งหมด</a>
                     </div>
                     <div class="p-6">
                         <div class="bg-white overflow-hidden">
@@ -225,9 +225,9 @@
                                             <th scope="col"
                                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 สถานะ</th>
-                                            <th scope="col"
+                                            {{-- <th scope="col"
                                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                จัดการ</th>
+                                                จัดการ</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -268,7 +268,7 @@
                                                         <span x-show="booking.bookstatus === 'rejected'"
                                                             class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">ถูกปฏิเสธ</span>
                                                     </td>
-                                                    <td
+                                                    {{-- <td
                                                         class="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                         <button @click="viewBookingDetails(booking.book_id)"
                                                             class="text-blue-600 hover:text-blue-900 mr-2">
@@ -284,7 +284,7 @@
                                                             class="text-red-600 hover:text-red-900">
                                                             ปฏิเสธ
                                                         </button>
-                                                    </td>
+                                                    </td> --}}
                                                 </tr>
                                             </template>
                                         </template>
@@ -338,7 +338,7 @@
                 <div class="bg-white rounded-lg shadow-md mb-6">
                     <div class="border-b px-6 py-4 flex justify-between items-center">
                         <h3 class="text-lg font-semibold text-gray-800">ห้องประชุมยอดนิยม</h3>
-                        <a href="/admin/reports/rooms" class="text-sm text-blue-500 hover:text-blue-700">ดูทั้งหมด</a>
+                        <a href="/admin/room_list" class="text-sm text-blue-500 hover:text-blue-700">ดูทั้งหมด</a>
                     </div>
                     <div class="p-6">
                         <div x-show="popularRooms.length === 0"

@@ -55,7 +55,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="w-full min-h-screen p-6 transition-all">
+        <div class="container mx-auto px-4 py-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <h2 class="text-2xl font-semibold">รายการห้องประชุม</h2>
 
@@ -114,6 +114,15 @@
                 </div>
             </div>
         </div>
+
+        <!-- Footer -->
+        <footer class="bg-white shadow-inner mt-6">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-gray-500 text-sm">
+                    © 2025 ระบบจองห้องประชุม. สงวนลิขสิทธิ์.
+                </p>
+            </div>
+        </footer>
 
         <!-- JavaScript for API Interaction -->
         <script>
@@ -352,5 +361,7 @@
         </script>
     </div>
 </body>
+
+
 
 </html>

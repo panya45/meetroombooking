@@ -1,21 +1,29 @@
-<nav class="bg-white shadow-md w-full px-6 py-3 flex justify-between items-center">
-    <!-- Hamburger Button -->
-    <button @click="$store.navigation.toggleSidebar()" class="text-gray-700 focus:outline-none">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </button>
-
-    <div x-show="$store.navigation.sidebarOpen" @click.away="$store.navigation.closeSidebar()"
-        class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50"
-        :class="$store.navigation.sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
-        @include('components.sidebar')
+<nav class="bg-white shadow-md w-full px-8 py-4 flex justify-between items-center">
+    <!-- Logo and Navigation Links -->
+    <div class="flex items-center space-x-8">
+        <!-- Logo or Brand Name -->
+        <a href="/admin/dashboard" class="flex items-center">
+            <span class="text-xl font-bold text-blue-600">MeetingBooked</span>
+        </a>
+        
+        <!-- Main Navigation Links -->
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="/admin/dashboard" class="text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition">
+                แดชบอร์ด
+            </a>
+            <a href="/admin/room_list" class="text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition">
+                จัดการห้องประชุม
+            </a>
+            <a href="/admin/room_booking" class="text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition">
+                จัดการการจอง
+            </a>
+        </div>
     </div>
 
     <!-- Notification & Profile -->
     <div class="flex items-center space-x-4">
         <!-- Notification Icon -->
-        <div x-data="notificationSystem">
+        <div class="relative" x-data="notificationSystem">
             <!-- Notification Bell Icon -->
             <button @click="toggleNotification()" type="button"
                 class="relative p-1 rounded-full text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -31,9 +39,12 @@
             </button>
 
             <!-- Notification Dropdown -->
-            <div x-show="isOpen" @click.away="isOpen = false" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
+            <div x-show="isOpen" @click.away="isOpen = false" 
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" 
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-100" 
+                x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50">
 
@@ -105,8 +116,6 @@
                         </div>
                     </template>
                 </div>
-
-                <!-- ลบส่วน Footer ที่มีลิงก์ "ดูการแจ้งเตือนทั้งหมด" ออก -->
             </div>
         </div>
 
@@ -148,21 +157,58 @@
     </div>
 </nav>
 
+<!-- Mobile menu, visible when menu button is clicked (for responsive design) -->
+<div x-data="{ mobileMenuOpen: false }" class="md:hidden">
+    <button @click="mobileMenuOpen = !mobileMenuOpen" 
+            class="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <svg x-show="!mobileMenuOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+        <svg x-show="mobileMenuOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <div x-show="mobileMenuOpen" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform translate-y-full" 
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 transform translate-y-0" 
+         x-transition:leave-end="opacity-0 transform translate-y-full"
+         class="fixed inset-0 bg-white z-40 pt-16 pb-20 overflow-y-auto">
+        <div class="px-6 space-y-4">
+            <a href="/admin/dashboard" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                หน้าหลัก
+            </a>
+            <a href="/admin/room_list" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                จัดการห้องประชุม
+            </a>
+            <a href="/admin/bookings" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                จัดการการจอง
+            </a>
+            <a href="/admin/users" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                จัดการผู้ใช้
+            </a>
+            <a href="/admin/reports" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                รายงาน
+            </a>
+            <a href="/admin/profile" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                โปรไฟล์
+            </a>
+            <a href="/admin/settings" class="block py-3 text-gray-700 hover:text-blue-600 text-lg border-b border-gray-200">
+                ตั้งค่า
+            </a>
+            <button onclick="logout()" type="button" 
+                class="block w-full text-left py-3 text-red-600 hover:text-red-800 text-lg border-b border-gray-200">
+                ออกจากระบบ
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Alpine.js Store สำหรับ Sidebar
     document.addEventListener('alpine:init', () => {
-        Alpine.store('navigation', {
-            sidebarOpen: false,
-
-            toggleSidebar() {
-                this.sidebarOpen = !this.sidebarOpen;
-            },
-
-            closeSidebar() {
-                this.sidebarOpen = false;
-            }
-        });
-
         // Alpine Component สำหรับระบบแจ้งเตือน
         Alpine.data('notificationSystem', () => ({
             isOpen: false,
@@ -173,7 +219,7 @@
             init() {
                 this.fetchNotifications();
 
-                // รีเฟรชทุก 30 วินาที (เพิ่มความถี่จาก 60 วินาที)
+                // รีเฟรชทุก 30 วินาที
                 setInterval(() => {
                     this.fetchNotifications();
                 }, 30000);
@@ -212,7 +258,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Notifications data:', data); // เพิ่ม debugging
+                        console.log('Notifications data:', data);
                         this.notifications = data.notifications || [];
                         this.notificationCount = data.unread_count || 0;
                         this.loading = false;
@@ -225,13 +271,12 @@
                     });
             },
 
-            // เพิ่มฟังก์ชันนี้ใน Alpine.js component 'notificationSystem'
             redirectToBookingDetails(notification, index) {
                 const token = localStorage.getItem('admin_token');
                 if (!token) return;
 
                 // ลบการแจ้งเตือนก่อน
-                fetch(`/api/admin/notifications/${index}`, {
+                fetch(`/api/admin/notifications/${notification.id || index}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -248,14 +293,13 @@
                     .then(data => {
                         // อัพเดทอาร์เรย์การแจ้งเตือนในหน้าจอ
                         this.notifications.splice(index, 1);
-                        this.notificationCount = this.notifications.length;
+                        this.notificationCount = Math.max(0, this.notificationCount - 1);
 
-                        // สร้าง URL ที่มีพารามิเตอร์ id และ showModal เพื่อให้หน้า booking เปิด modal อัตโนมัติ
+                        // สร้าง URL ที่มีพารามิเตอร์ id และ showModal
                         let url = '/admin/bookings';
 
                         if (notification.data && notification.data.booking_id) {
-                            url =
-                                `/admin/bookings?id=${notification.data.booking_id}&showModal=true`;
+                            url = `/admin/bookings?id=${notification.data.booking_id}&showModal=true`;
                         }
 
                         // นำทางไปยังหน้า booking management
@@ -272,7 +316,7 @@
                 const token = localStorage.getItem('admin_token');
                 if (!token) return;
 
-                const notificationId = this.notifications[index].id;
+                const notificationId = this.notifications[index].id || index;
 
                 fetch(`/api/admin/notifications/${notificationId}`, {
                         method: 'DELETE',
@@ -293,8 +337,7 @@
                         this.notifications.splice(index, 1);
 
                         // อัพเดทจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน
-                        this.notificationCount = this.notifications.filter(notification => !
-                            notification.read).length;
+                        this.notificationCount = Math.max(0, this.notificationCount - 1);
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -333,27 +376,6 @@
                         console.error('Error:', error);
                         alert('เกิดข้อผิดพลาดในการล้างการแจ้งเตือน');
                     });
-            },
-
-            getNotificationUrl(notification) {
-                if (!notification.data) return '#';
-
-                switch (notification.type) {
-                    case 'booking':
-                        return notification.data.booking_id ?
-                            `/admin/bookings/${notification.data.booking_id}` :
-                            '/admin/bookings';
-                    case 'user':
-                        return notification.data.user_id ?
-                            `/admin/users/${notification.data.user_id}` :
-                            '/admin/users';
-                    case 'room':
-                        return notification.data.room_id ?
-                            `/admin/rooms/${notification.data.room_id}` :
-                            '/admin/rooms';
-                    default:
-                        return '/admin/dashboard';
-                }
             },
 
             formatTimestamp(dateString) {

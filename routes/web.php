@@ -108,8 +108,15 @@ Route::middleware(['auth'])->group(function () {
     // แสดงฟอร์มการจอง
     Route::get('/booking/{roomId}', [BookingController::class, 'show'])->name('booking.show');
 
+    Route::get('/myBookings', 'App\Http\Controllers\User\BookingController@index')
+        ->name('user.bookings.index');
+
     // ส่งข้อมูลการจอง
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+
+    Route::get('/user/myBooking', [BookingController::class, 'myBookings'])->name('user.myBooking');
+
+    Route::get('/user/myBooking/data', [BookingController::class, 'getUserBookings'])->name('user.myBooking.data');
 });
 
 Route::get('/user/booking/{booking_id}', [BookingController::class, 'show'])->name('booking.show');
@@ -120,7 +127,8 @@ Route::get('/get-reject-reason/{booking_id}', [BookingController::class, 'getRej
 Route::get('/get-notifications', [BookingController::class, 'getNotifications']);
 
 
-Route::get('/user/myBooking', [BookingController::class, 'myBookings'])->name('user.myBooking');
+
+
 
 Route::put('/bookings/{booking_id}/cancel', [BookingController::class, 'cancel']);
 
